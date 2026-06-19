@@ -172,7 +172,7 @@ export default function OwnerDashboard({ user }) {
   const [expensesList, setExpensesList] = useState(DEMO_EXPENSES);
   const [b2cProjectsList, setB2cProjectsList] = useState(DEMO_B2C_PROJECTS);
 
-  const [activeTab, setActiveTab] = useState(isHR ? 'staff_live' : 'epc'); // 'epc', 'staff_live', 'self_service'
+  const [activeTab, setActiveTab] = useState('epc'); // 'epc', 'staff_live', 'self_service'
 
   // GPS Coordinates and Checkin states
   const [geoCoords, setGeoCoords] = useState(null);
