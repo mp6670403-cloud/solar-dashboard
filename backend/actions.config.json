@@ -1,0 +1,20 @@
+[
+  {
+    "action_name": "Onboard New Employee",
+    "webhook_url": "http://localhost:5678/webhook-test/onboard-employee",
+    "payload_fields": ["employee_email", "employee_name", "department"],
+    "allowed_designations": ["HR", "Admin"]
+  },
+  {
+    "action_name": "Trigger Inventory Restock Request",
+    "webhook_url": "http://localhost:5678/webhook-test/inventory-restock",
+    "payload_fields": ["item_code", "quantity_needed", "vendor_email"],
+    "allowed_designations": ["Operations", "Admin"]
+  },
+  {
+    "action_name": "Send Alert Notification",
+    "webhook_url": "http://localhost:5678/webhook-test/send-alert",
+    "payload_fields": ["alert_title", "alert_message", "urgency"],
+    "allowed_designations": ["Admin"]
+  }
+]

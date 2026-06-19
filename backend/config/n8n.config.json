@@ -1,0 +1,62 @@
+{
+  "_comment": "n8n Workflow Configuration — Placeholder webhook URLs. Replace with actual n8n instance URLs when ready.",
+  "n8n_base_url": "http://localhost:5678",
+  "workflows": {
+    "new_lead_notification": {
+      "name": "New Lead Notification",
+      "webhook_url": "http://localhost:5678/webhook/new-lead-notification",
+      "description": "Sends email/WhatsApp notification when a new lead is created",
+      "trigger": "lead_created",
+      "payload_fields": ["lead_name", "phone", "email", "source", "kw_capacity"]
+    },
+    "lead_stage_update": {
+      "name": "Lead Stage Update",
+      "webhook_url": "http://localhost:5678/webhook/lead-stage-update",
+      "description": "Triggers follow-up actions when lead stage changes",
+      "trigger": "lead_stage_changed",
+      "payload_fields": ["lead_id", "lead_name", "old_stage", "new_stage"]
+    },
+    "proposal_generator": {
+      "name": "Generate Proposal PDF",
+      "webhook_url": "http://localhost:5678/webhook/generate-proposal",
+      "description": "Generates and emails a solar proposal PDF to the lead",
+      "trigger": "manual",
+      "payload_fields": ["lead_name", "email", "kw_capacity", "monthly_bill", "roof_area"]
+    },
+    "payment_reminder": {
+      "name": "Payment Reminder",
+      "webhook_url": "http://localhost:5678/webhook/payment-reminder",
+      "description": "Sends payment reminder via email and WhatsApp",
+      "trigger": "payment_overdue",
+      "payload_fields": ["customer_name", "amount", "due_date", "project_name"]
+    },
+    "inventory_restock_alert": {
+      "name": "Inventory Restock Alert",
+      "webhook_url": "http://localhost:5678/webhook/inventory-restock",
+      "description": "Alerts operations team when stock falls below reorder level",
+      "trigger": "low_stock",
+      "payload_fields": ["item_name", "item_code", "current_stock", "reorder_level", "supplier"]
+    },
+    "project_milestone_update": {
+      "name": "Project Milestone Update",
+      "webhook_url": "http://localhost:5678/webhook/milestone-update",
+      "description": "Notifies stakeholders when a project milestone is completed",
+      "trigger": "milestone_completed",
+      "payload_fields": ["project_name", "milestone_name", "customer_name"]
+    },
+    "daily_summary_email": {
+      "name": "Daily Summary Email",
+      "webhook_url": "http://localhost:5678/webhook/daily-summary",
+      "description": "Sends daily business summary email to the owner",
+      "trigger": "scheduled_daily",
+      "payload_fields": ["summary_data"]
+    },
+    "indiamart_lead_import": {
+      "name": "IndiaMART Lead Import",
+      "webhook_url": "http://localhost:5678/webhook/indiamart-import",
+      "description": "Receives lead data from IndiaMART and creates a new lead",
+      "trigger": "inbound_webhook",
+      "payload_fields": ["name", "phone", "email", "query", "city"]
+    }
+  }
+}

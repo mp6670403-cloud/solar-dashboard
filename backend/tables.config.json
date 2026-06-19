@@ -1,0 +1,20 @@
+[
+  {
+    "id": "employee_directory",
+    "name": "Employee Directory",
+    "query": "SELECT id, name, email, designation, status, join_date FROM employees ORDER BY join_date DESC",
+    "allowed_designations": ["HR", "Admin"]
+  },
+  {
+    "id": "inventory_status",
+    "name": "Inventory & Stock Levels",
+    "query": "SELECT id, item_name, item_code, stock_level, price, supplier FROM inventory ORDER BY stock_level ASC",
+    "allowed_designations": ["Operations", "Admin"]
+  },
+  {
+    "id": "system_logs",
+    "name": "System Operations Log",
+    "query": "SELECT id, user_role, action_type, details, created_at FROM system_logs ORDER BY created_at DESC LIMIT 50",
+    "allowed_designations": ["Admin"]
+  }
+]
