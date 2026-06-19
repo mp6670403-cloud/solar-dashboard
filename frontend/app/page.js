@@ -102,7 +102,7 @@ export default function Home() {
     'HR':         ['dashboard','staff','employee_portal','settings'],
     'Sales':      ['dashboard','crm','b2c_projects','employee_portal','settings'],
     'B2B Sales':  ['dashboard','b2b','inventory','settings'],
-    'Operations': ['dashboard','projects','b2c_projects','inventory','employee_portal','settings'],
+    'Operations': ['dashboard','projects','b2c_projects','settings'],
   };
 
   // Render module component dynamically with access guard

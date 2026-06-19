@@ -37,9 +37,9 @@ const NAV_ITEMS = [
   { id: 'b2c_projects',    label: 'B2C Tracker',        icon: Home,            roles: ['Owner', 'Sales', 'Operations'] },
   { id: 'projects',        label: 'Projects',           icon: FolderKanban,    roles: ['Owner', 'Operations'] },
   { id: 'b2b',             label: 'B2B Dealer Portal',  icon: Briefcase,       roles: ['Owner', 'B2B Sales'] },
-  { id: 'inventory',       label: 'Inventory',          icon: Package,         roles: ['Owner', 'Operations', 'B2B Sales'] },
+  { id: 'inventory',       label: 'Inventory',          icon: Package,         roles: ['Owner', 'B2B Sales'] },
   { id: 'staff',           label: 'HR & Staff Portal',  icon: UserCheck,       roles: ['Owner', 'HR'] },
-  { id: 'employee_portal', label: 'My Staff Portal',    icon: ClipboardList,   roles: ['Owner', 'HR', 'Sales', 'Operations'] },
+  { id: 'employee_portal', label: 'My Staff Portal',    icon: ClipboardList,   roles: ['Owner', 'HR', 'Sales'] },
   { id: 'payments',        label: 'Payments',           icon: CreditCard,      roles: ['Owner'] },
   { id: 'settings',        label: 'Settings',           icon: Settings,        roles: ['Owner', 'HR', 'Sales', 'Operations', 'B2B Sales'] },
 ];
