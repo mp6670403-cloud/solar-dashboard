@@ -39,7 +39,7 @@ const NAV_ITEMS = [
   { id: 'b2b',             label: 'B2B Dealer Portal',  icon: Briefcase,       roles: ['Owner', 'B2B Sales'] },
   { id: 'inventory',       label: 'Inventory',          icon: Package,         roles: ['Owner', 'Operations', 'B2B Sales'] },
   { id: 'staff',           label: 'HR & Staff Portal',  icon: UserCheck,       roles: ['Owner', 'HR'] },
-  { id: 'employee_portal', label: 'My Staff Portal',    icon: ClipboardList,   roles: ['Owner', 'HR', 'Sales', 'Operations', 'B2B Sales'] },
+  { id: 'employee_portal', label: 'My Staff Portal',    icon: ClipboardList,   roles: ['Owner', 'HR', 'Sales', 'Operations'] },
   { id: 'payments',        label: 'Payments',           icon: CreditCard,      roles: ['Owner'] },
   { id: 'settings',        label: 'Settings',           icon: Settings,        roles: ['Owner', 'HR', 'Sales', 'Operations', 'B2B Sales'] },
 ];

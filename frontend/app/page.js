@@ -101,7 +101,7 @@ export default function Home() {
     'Owner':      ['dashboard','crm','b2c_projects','projects','b2b','inventory','staff','employee_portal','payments','settings'],
     'HR':         ['dashboard','staff','employee_portal','settings'],
     'Sales':      ['dashboard','crm','b2c_projects','employee_portal','settings'],
-    'B2B Sales':  ['dashboard','b2b','inventory','employee_portal','settings'],
+    'B2B Sales':  ['dashboard','b2b','inventory','settings'],
     'Operations': ['dashboard','projects','b2c_projects','inventory','employee_portal','settings'],
   };
 
