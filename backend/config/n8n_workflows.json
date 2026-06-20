@@ -92,20 +92,60 @@
         },
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4,
-        "position": [500, 300],
+        "position": [500, 200],
         "id": "http-owner-alert",
         "name": "Send Owner WhatsApp Alert"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://52.63.104.242.sslip.io/api/workflows/webhook/error-fallback",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              { "name": "Content-Type", "value": "application/json" }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "json",
+          "bodyParameters": {
+            "parameters": [
+              { "name": "event_type", "value": "new-lead-alert-fail" },
+              { "name": "recipient", "value": "={{ $json.body.owner_phone }}" },
+              { "name": "message_text", "value": "🔔 *NEW LEAD ALERT*\n\nName: {{ $json.body.lead_name }}\nPhone: {{ $json.body.phone }}\nSource: {{ $json.body.source }}\nkW: {{ $json.body.kw_capacity }}\nAI Score: {{ $json.body.ai_score }}/100\n\nDashboard: https://52.63.104.242.sslip.io" },
+              { "name": "fallback_email", "value": "={{ $json.body.fallback_email_recipient || 'alerts@heliussolar.in' }}" }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [750, 400],
+        "id": "http-fallback-trigger",
+        "name": "Send Fallback Notification Email"
       }
     ],
     "connections": {
       "New Lead Webhook": {
         "main": [
-          [{ "node": "Send Owner WhatsApp Alert", "type": "main", "index": 0 }]
+          [
+            { "node": "Send Owner WhatsApp Alert", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Send Owner WhatsApp Alert": {
+        "main": [],
+        "error": [
+          [
+            { "node": "Send Fallback Notification Email", "type": "main", "index": 0 }
+          ]
         ]
       }
     },
     "active": false,
-    "settings": {},
+    "settings": {
+      "errorWorkflowType": "anyNodeError"
+    },
     "id": "wf-new-lead-alert"
   },
   {
@@ -147,20 +187,60 @@
         },
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4,
-        "position": [500, 300],
+        "position": [500, 200],
         "id": "http-stage-alert",
         "name": "Send Stage Alert via Waha"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://52.63.104.242.sslip.io/api/workflows/webhook/error-fallback",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              { "name": "Content-Type", "value": "application/json" }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "json",
+          "bodyParameters": {
+            "parameters": [
+              { "name": "event_type", "value": "stage-update-alert-fail" },
+              { "name": "recipient", "value": "={{ $json.body.owner_phone }}" },
+              { "name": "message_text", "value": "📋 *LEAD STAGE CHANGED*\n\nLead: {{ $json.body.lead_name }}\n{{ $json.body.old_stage }} ➜ {{ $json.body.new_stage }}\n\nDashboard: https://52.63.104.242.sslip.io" },
+              { "name": "fallback_email", "value": "={{ $json.body.fallback_email_recipient || 'alerts@heliussolar.in' }}" }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [750, 400],
+        "id": "http-fallback-stage",
+        "name": "Send Fallback Notification Email"
       }
     ],
     "connections": {
       "Stage Update Webhook": {
         "main": [
-          [{ "node": "Send Stage Alert via Waha", "type": "main", "index": 0 }]
+          [
+            { "node": "Send Stage Alert via Waha", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Send Stage Alert via Waha": {
+        "main": [],
+        "error": [
+          [
+            { "node": "Send Fallback Notification Email", "type": "main", "index": 0 }
+          ]
         ]
       }
     },
     "active": false,
-    "settings": {},
+    "settings": {
+      "errorWorkflowType": "anyNodeError"
+    },
     "id": "wf-stage-update"
   },
   {
@@ -202,20 +282,60 @@
         },
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4,
-        "position": [500, 300],
+        "position": [500, 200],
         "id": "http-b2b-placed-alert",
         "name": "Alert Owner — New B2B Order"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://52.63.104.242.sslip.io/api/workflows/webhook/error-fallback",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              { "name": "Content-Type", "value": "application/json" }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "json",
+          "bodyParameters": {
+            "parameters": [
+              { "name": "event_type", "value": "b2b-order-placed-fail" },
+              { "name": "recipient", "value": "={{ $json.body.owner_phone }}" },
+              { "name": "message_text", "value": "🛒 *NEW B2B ORDER*\n\nOrder #{{ $json.body.order_id }}\nClient: {{ $json.body.client_name }}\nProduct: {{ $json.body.product_name }}\nQty: {{ $json.body.quantity }}\nAmount: ₹{{ $json.body.total_amount }}\n\n⚠️ Approval Required!\nDashboard: https://52.63.104.242.sslip.io" },
+              { "name": "fallback_email", "value": "={{ $json.body.fallback_email_recipient || 'alerts@heliussolar.in' }}" }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [750, 400],
+        "id": "http-fallback-b2b-placed",
+        "name": "Send Fallback Notification Email"
       }
     ],
     "connections": {
       "B2B Order Placed Webhook": {
         "main": [
-          [{ "node": "Alert Owner — New B2B Order", "type": "main", "index": 0 }]
+          [
+            { "node": "Alert Owner — New B2B Order", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Alert Owner — New B2B Order": {
+        "main": [],
+        "error": [
+          [
+            { "node": "Send Fallback Notification Email", "type": "main", "index": 0 }
+          ]
         ]
       }
     },
     "active": false,
-    "settings": {},
+    "settings": {
+      "errorWorkflowType": "anyNodeError"
+    },
     "id": "wf-b2b-placed"
   },
   {
@@ -257,20 +377,60 @@
         },
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4,
-        "position": [500, 300],
+        "position": [500, 200],
         "id": "http-b2b-confirmed-alert",
         "name": "Send Dealer Confirmation via Waha"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://52.63.104.242.sslip.io/api/workflows/webhook/error-fallback",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              { "name": "Content-Type", "value": "application/json" }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "json",
+          "bodyParameters": {
+            "parameters": [
+              { "name": "event_type", "value": "b2b-order-confirmed-fail" },
+              { "name": "recipient", "value": "={{ $json.body.phone }}" },
+              { "name": "message_text", "value": "✅ *ORDER CONFIRMED*\n\nOrder #{{ $json.body.order_id }}\nInvoice: {{ $json.body.invoice_no }}\nTotal: ₹{{ $json.body.total_amount }}\n\nThank you, {{ $json.body.client_name }}!\nTrack: https://52.63.104.242.sslip.io/track?orderId={{ $json.body.order_id }}" },
+              { "name": "fallback_email", "value": "={{ $json.body.fallback_email_recipient || 'alerts@heliussolar.in' }}" }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [750, 400],
+        "id": "http-fallback-b2b-confirmed",
+        "name": "Send Fallback Notification Email"
       }
     ],
     "connections": {
       "B2B Confirmed Webhook": {
         "main": [
-          [{ "node": "Send Dealer Confirmation via Waha", "type": "main", "index": 0 }]
+          [
+            { "node": "Send Dealer Confirmation via Waha", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Send Dealer Confirmation via Waha": {
+        "main": [],
+        "error": [
+          [
+            { "node": "Send Fallback Notification Email", "type": "main", "index": 0 }
+          ]
         ]
       }
     },
     "active": false,
-    "settings": {},
+    "settings": {
+      "errorWorkflowType": "anyNodeError"
+    },
     "id": "wf-b2b-confirmed"
   },
   {
@@ -312,20 +472,60 @@
         },
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4,
-        "position": [500, 300],
+        "position": [500, 200],
         "id": "http-b2b-dispatch-alert",
         "name": "Send Dealer Dispatch Alert via Waha"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://52.63.104.242.sslip.io/api/workflows/webhook/error-fallback",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              { "name": "Content-Type", "value": "application/json" }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "json",
+          "bodyParameters": {
+            "parameters": [
+              { "name": "event_type", "value": "b2b-order-dispatched-fail" },
+              { "name": "recipient", "value": "={{ $json.body.phone }}" },
+              { "name": "message_text", "value": "🚚 *MATERIAL DISPATCHED*\n\nOrder #{{ $json.body.order_id }}\nClient: {{ $json.body.client_name }}\nLogistics: {{ $json.body.logistics_partner }}\nTracking: {{ $json.body.tracking_no }}\nE-Way: {{ $json.body.e_way_bill }}\n\nTrack Live: {{ $json.body.tracking_url }}" },
+              { "name": "fallback_email", "value": "={{ $json.body.fallback_email_recipient || 'alerts@heliussolar.in' }}" }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [750, 400],
+        "id": "http-fallback-b2b-dispatch",
+        "name": "Send Fallback Notification Email"
       }
     ],
     "connections": {
       "B2B Dispatch Webhook": {
         "main": [
-          [{ "node": "Send Dealer Dispatch Alert via Waha", "type": "main", "index": 0 }]
+          [
+            { "node": "Send Dealer Dispatch Alert via Waha", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Send Dealer Dispatch Alert via Waha": {
+        "main": [],
+        "error": [
+          [
+            { "node": "Send Fallback Notification Email", "type": "main", "index": 0 }
+          ]
         ]
       }
     },
     "active": false,
-    "settings": {},
+    "settings": {
+      "errorWorkflowType": "anyNodeError"
+    },
     "id": "wf-b2b-dispatched"
   },
   {
@@ -367,20 +567,60 @@
         },
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4,
-        "position": [500, 300],
+        "position": [500, 200],
         "id": "http-payment-reminder",
         "name": "Send Payment Reminder via Waha"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://52.63.104.242.sslip.io/api/workflows/webhook/error-fallback",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              { "name": "Content-Type", "value": "application/json" }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "json",
+          "bodyParameters": {
+            "parameters": [
+              { "name": "event_type", "value": "payment-reminder-fail" },
+              { "name": "recipient", "value": "={{ $json.body.customer_phone }}" },
+              { "name": "message_text", "value": "💰 *PAYMENT REMINDER*\n\nDear {{ $json.body.customer_name }},\n\nYour payment of ₹{{ $json.body.amount }} for project \"{{ $json.body.project_name }}\" is due on {{ $json.body.due_date }}.\n\nPlease clear the dues at the earliest.\n\n— Helius Solar" },
+              { "name": "fallback_email", "value": "={{ $json.body.fallback_email_recipient || 'alerts@heliussolar.in' }}" }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [750, 400],
+        "id": "http-fallback-payment-reminder",
+        "name": "Send Fallback Notification Email"
       }
     ],
     "connections": {
       "Payment Reminder Webhook": {
         "main": [
-          [{ "node": "Send Payment Reminder via Waha", "type": "main", "index": 0 }]
+          [
+            { "node": "Send Payment Reminder via Waha", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Send Payment Reminder via Waha": {
+        "main": [],
+        "error": [
+          [
+            { "node": "Send Fallback Notification Email", "type": "main", "index": 0 }
+          ]
         ]
       }
     },
     "active": false,
-    "settings": {},
+    "settings": {
+      "errorWorkflowType": "anyNodeError"
+    },
     "id": "wf-payment-reminder"
   }
 ]

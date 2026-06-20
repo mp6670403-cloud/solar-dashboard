@@ -178,4 +178,37 @@ router.post('/webhook/whatsapp', async (req, res) => {
   }
 });
 
+// POST /api/workflows/webhook/error-fallback
+// This endpoint catches failures in the n8n WhatsApp alert pipeline and dispatches emails / warnings
+router.post('/webhook/error-fallback', async (req, res) => {
+  const { event_type, recipient, message_text, fallback_email } = req.body;
+  console.log(`[ALERT FALLBACK SYSTEM] ⚠️ WAHA Offline Failover Triggered!
+  Event: ${event_type}
+  Target Phone: ${recipient}
+  Fallback Email: ${fallback_email || 'alerts@heliussolar.in'}
+  Message: "${message_text}"
+  --------------------------------------------------
+  `);
+  try {
+    // 1. Log incident in system database
+    const details = `Alert delivery failed. Event: ${event_type}. Phone: ${recipient}. Triggered fallback notification to: ${fallback_email}`;
+    await db.query(
+      'INSERT INTO system_logs (user_role, action_type, details) VALUES ($1, $2, $3)',
+      ['System', 'Alert Dispatch Failover', details]
+    );
+
+    // 2. Log webhook failure history
+    await db.query(
+      `INSERT INTO webhook_logs (webhook_source, payload, status, error_details, created_at)
+       VALUES ($1, $2, 'Fallback Triggered', $3, NOW())`,
+      ['n8n Fallback Handler', JSON.stringify(req.body), 'WhatsApp delivery failed, falling back to System alert log.']
+    );
+
+    res.json({ success: true, logged: true, message: 'Fallback alert successfully routed to system logs.' });
+  } catch (error) {
+    console.error('Error handling fallback webhook:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

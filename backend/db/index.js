@@ -279,7 +279,11 @@ const seedMockDb = async () => {
     { setting_key: 'bot_whatsapp_number', setting_value: '6386434561' },
     { setting_key: 'owner_whatsapp_number', setting_value: '917052051010' },
     { setting_key: 'waha_api_url', setting_value: 'http://localhost:3000' },
-    { setting_key: 'waha_api_key', setting_value: '' }
+    { setting_key: 'waha_api_key', setting_value: '' },
+    { setting_key: 'openai_api_key', setting_value: '' },
+    { setting_key: 'strategy_override_prompt', setting_value: '' },
+    { setting_key: 'fallback_email_recipient', setting_value: 'alerts@heliussolar.in' },
+    { setting_key: 'controller_access_password', setting_value: 'admin123' }
   ];
 
   console.log('[Mock DB] Mock database seeded successfully with Solar EPC data.');
@@ -1064,7 +1068,11 @@ const initializeDatabase = async () => {
           ('bot_whatsapp_number', '6386434561'),
           ('owner_whatsapp_number', '917052051010'),
           ('waha_api_url', 'http://localhost:3000'),
-          ('waha_api_key', '');
+          ('waha_api_key', ''),
+          ('openai_api_key', ''),
+          ('strategy_override_prompt', ''),
+          ('fallback_email_recipient', 'alerts@heliussolar.in'),
+          ('controller_access_password', 'admin123');
         `);
       }
 

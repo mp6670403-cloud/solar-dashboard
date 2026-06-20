@@ -42,6 +42,7 @@ const NAV_ITEMS = [
   { id: 'employee_portal', label: 'My Staff Portal',    icon: ClipboardList,   roles: ['Owner', 'HR', 'Sales Head'] },
   { id: 'payments',        label: 'Payments',           icon: CreditCard,      roles: ['Owner'] },
   { id: 'settings',        label: 'Settings',           icon: Settings,        roles: ['Owner', 'HR', 'Sales Head', 'Operations Head', 'B2B Sales'] },
+  { id: 'controller',      label: '⚙️ API Controller',   icon: Settings,        roles: ['Owner'] },
 ];
 
 export default function Sidebar({ activeModule, onModuleChange, user, onLogout }) {

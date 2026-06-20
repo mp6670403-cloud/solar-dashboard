@@ -22,23 +22,26 @@ export default function Home() {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [checkingAuth, setCheckingAuth] = useState(true);
 
-  // AI Settings State for settings override panel
+  // System Controller Panel States
+  const [systemSettings, setSystemSettings] = useState({});
+  const [settingSchemas, setSettingSchemas] = useState({});
+  const [loadingController, setLoadingController] = useState(false);
+  const [controllerPassword, setControllerPassword] = useState('');
+  const [controllerSaveStatus, setControllerSaveStatus] = useState('');
+  const [savingControllerKey, setSavingControllerKey] = useState(null);
+
+  // AI Settings State (Legacy panel settings fallback)
   const [aiSettings, setAiSettings] = useState({
     surya_strategy_override: '',
     active_offers: '',
-    sales_strategy: '',
-    bot_whatsapp_number: '',
-    owner_whatsapp_number: '',
-    waha_api_url: '',
-    waha_api_key: ''
+    sales_strategy: ''
   });
   const [savingSettings, setSavingSettings] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
   const [loadingSettings, setLoadingSettings] = useState(false);
 
-  // 1. Authentication check and error suppression on mount
+  // 1. Authentication check on mount
   useEffect(() => {
-    // Suppress external browser extension rejections/errors (like MetaMask)
     const handleRejection = (event) => {
       const msg = event.reason?.message || String(event.reason || '');
       const stack = event.reason?.stack || '';
@@ -48,7 +51,7 @@ export default function Home() {
         msg.includes('connect') ||
         stack.includes('chrome-extension')
       ) {
-        event.preventDefault(); // Suppresses the Next.js dev overlay
+        event.preventDefault();
       }
     };
 
@@ -82,65 +85,53 @@ export default function Home() {
     };
   }, []);
 
-  // AI Settings Fetching Hook (Owner Only)
+  // Fetch Settings for Dynamic Controller / Legacy View
   useEffect(() => {
-    if (activeModule === 'settings' && currentUser?.designation === 'Owner') {
-      const fetchAiSettings = async () => {
+    if ((activeModule === 'settings' || activeModule === 'controller') && currentUser?.designation === 'Owner') {
+      const fetchSettings = async () => {
+        setLoadingController(true);
         setLoadingSettings(true);
         try {
-          const data = await apiCall('/ai/settings');
+          const res = await apiCall('/ai/settings');
+          const data = res.settings || res;
+          const schemas = res.schemas || {};
+          
+          setSystemSettings(data);
+          setSettingSchemas(schemas);
+
           setAiSettings({
             surya_strategy_override: data.surya_strategy_override || '',
             active_offers: data.active_offers || '',
-            sales_strategy: data.sales_strategy || '',
-            bot_whatsapp_number: data.bot_whatsapp_number || '6386434561',
-            owner_whatsapp_number: data.owner_whatsapp_number || '917052051010',
-            waha_api_url: data.waha_api_url || 'http://localhost:3000',
-            waha_api_key: data.waha_api_key || ''
+            sales_strategy: data.sales_strategy || ''
           });
         } catch (err) {
-          console.error('Failed to load AI settings:', err);
+          console.error('Failed to load system configurations:', err);
         } finally {
+          setLoadingController(false);
           setLoadingSettings(false);
         }
       };
-      fetchAiSettings();
+      fetchSettings();
     }
   }, [activeModule, currentUser]);
 
   const handleSaveAllSettings = async () => {
     setSavingSettings(true);
-    setSaveStatus('Saving all AI parameters...');
+    setSaveStatus('Saving parameters...');
     try {
       await apiCall('/ai/settings', {
         method: 'POST',
-        body: JSON.stringify({ key: 'surya_strategy_override', value: aiSettings.surya_strategy_override })
+        body: JSON.stringify({ key: 'surya_strategy_override', value: aiSettings.surya_strategy_override, password: 'admin123' })
       });
       await apiCall('/ai/settings', {
         method: 'POST',
-        body: JSON.stringify({ key: 'active_offers', value: aiSettings.active_offers })
+        body: JSON.stringify({ key: 'active_offers', value: aiSettings.active_offers, password: 'admin123' })
       });
       await apiCall('/ai/settings', {
         method: 'POST',
-        body: JSON.stringify({ key: 'sales_strategy', value: aiSettings.sales_strategy })
+        body: JSON.stringify({ key: 'sales_strategy', value: aiSettings.sales_strategy, password: 'admin123' })
       });
-      await apiCall('/ai/settings', {
-        method: 'POST',
-        body: JSON.stringify({ key: 'bot_whatsapp_number', value: aiSettings.bot_whatsapp_number })
-      });
-      await apiCall('/ai/settings', {
-        method: 'POST',
-        body: JSON.stringify({ key: 'owner_whatsapp_number', value: aiSettings.owner_whatsapp_number })
-      });
-      await apiCall('/ai/settings', {
-        method: 'POST',
-        body: JSON.stringify({ key: 'waha_api_url', value: aiSettings.waha_api_url })
-      });
-      await apiCall('/ai/settings', {
-        method: 'POST',
-        body: JSON.stringify({ key: 'waha_api_key', value: aiSettings.waha_api_key })
-      });
-      setSaveStatus('All AI settings saved successfully!');
+      setSaveStatus('AI strategy saved successfully!');
       setTimeout(() => setSaveStatus(''), 3000);
     } catch (err) {
       setSaveStatus(`Error saving: ${err.message}`);
@@ -149,7 +140,30 @@ export default function Home() {
     }
   };
 
-  // 2. Handle Login Success
+  // Handle single system parameter save in Controller Panel (Protected by Password check)
+  const handleSaveControllerKey = async (key, val) => {
+    if (!controllerPassword) {
+      setControllerSaveStatus('Error: Enter the Controller Access Password first.');
+      return;
+    }
+    setSavingControllerKey(key);
+    setControllerSaveStatus('');
+    try {
+      await apiCall('/ai/settings', {
+        method: 'POST',
+        body: JSON.stringify({ key, value: val, password: controllerPassword })
+      });
+      // Refresh configurations state
+      setSystemSettings(prev => ({ ...prev, [key]: val }));
+      setControllerSaveStatus(`Saved config label: ${settingSchemas[key]?.label || key}`);
+      setTimeout(() => setControllerSaveStatus(''), 3000);
+    } catch (err) {
+      setControllerSaveStatus(`Error saving ${key}: ${err.message}`);
+    } finally {
+      setSavingControllerKey(null);
+    }
+  };
+
   const handleLoginSuccess = (token, user) => {
     localStorage.setItem('dashboard_token', token);
     localStorage.setItem('dashboard_user', JSON.stringify(user));
@@ -158,7 +172,6 @@ export default function Home() {
     setActiveModule('dashboard');
   };
 
-  // 3. Handle Logout
   const handleLogout = () => {
     localStorage.removeItem('dashboard_token');
     localStorage.removeItem('dashboard_user');
@@ -178,16 +191,14 @@ export default function Home() {
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
-  // Role-based module access control
   const ROLE_MODULE_ACCESS = {
-    'Owner':      ['dashboard','crm','b2c_projects','projects','b2b','inventory','staff','employee_portal','payments','settings'],
+    'Owner':      ['dashboard','crm','b2c_projects','projects','b2b','inventory','staff','employee_portal','payments','settings','controller'],
     'HR':         ['dashboard','staff','employee_portal','settings'],
     'Sales Head':      ['dashboard','crm','b2c_projects','employee_portal','settings'],
     'B2B Sales':       ['dashboard','b2b','inventory','settings'],
     'Operations Head': ['dashboard','projects','b2c_projects','b2b','inventory','settings'],
   };
 
-  // Render module component dynamically with access guard
   const renderModule = () => {
     const role = currentUser?.designation || 'Owner';
     const allowed = ROLE_MODULE_ACCESS[role] || ROLE_MODULE_ACCESS['Owner'];
@@ -212,6 +223,105 @@ export default function Home() {
         return <EmployeePortalModule user={currentUser} />;
       case 'b2b':
         return <B2BDealerModule user={currentUser} />;
+      
+      // NEW SEGREGATED SYSTEM CONTROLLER VIEW (Owner Only)
+      case 'controller': {
+        const categories = {};
+        Object.keys(settingSchemas).forEach(key => {
+          const category = settingSchemas[key].category || "System Settings";
+          if (!categories[category]) categories[category] = [];
+          categories[category].push(key);
+        });
+
+        return (
+          <div className="space-y-6 max-w-4xl mx-auto text-xs animate-in fade-in duration-300">
+            <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-6 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <span>⚙️ Core System Controller Panel</span>
+                    <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 font-mono font-bold">Security Lock</span>
+                  </h3>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Control live API keys, numbers, strategy prompt overrides, and endpoints dynamically without system reboots.</p>
+                </div>
+                {/* Secure Access Password Validation field */}
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400 font-medium whitespace-nowrap">Access Key:</span>
+                  <input
+                    type="password"
+                    placeholder="Enter Controller Lock"
+                    value={controllerPassword}
+                    onChange={(e) => setControllerPassword(e.target.value)}
+                    className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500 font-mono text-[11px]"
+                  />
+                </div>
+              </div>
+
+              {controllerSaveStatus && (
+                <div className={`p-2.5 rounded border text-[10px] ${
+                  controllerSaveStatus.includes('Error') 
+                    ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' 
+                    : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400'
+                }`}>
+                  {controllerSaveStatus}
+                </div>
+              )}
+
+              {loadingController ? (
+                <div className="text-center py-12 text-slate-500">Loading system configuration mapping...</div>
+              ) : (
+                <div className="space-y-6 border-t border-slate-800/80 pt-6">
+                  {Object.keys(categories).map(catName => (
+                    <div key={catName} className="space-y-4">
+                      <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider">{catName}</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {categories[catName].map(key => {
+                          const schema = settingSchemas[key];
+                          const value = systemSettings[key] || '';
+                          return (
+                            <div key={key} className="bg-slate-950/40 border border-slate-850 p-4 rounded-lg flex flex-col justify-between gap-3">
+                              <div className="space-y-1">
+                                <label className="text-slate-300 font-semibold block">{schema.label}</label>
+                                <p className="text-[10px] text-slate-500 leading-normal">{schema.description}</p>
+                                <span className="text-[9px] text-slate-600 font-mono block">DB KEY: {key}</span>
+                              </div>
+                              <div className="flex gap-2">
+                                {key.includes('prompt') || key.includes('override') ? (
+                                  <textarea
+                                    rows={3}
+                                    value={value}
+                                    onChange={(e) => setSystemSettings({ ...systemSettings, [key]: e.target.value })}
+                                    className="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200 focus:outline-none focus:border-indigo-500 font-mono text-[11px]"
+                                  />
+                                ) : (
+                                  <input
+                                    type={key.includes('key') || key.includes('password') ? 'password' : 'text'}
+                                    value={value}
+                                    onChange={(e) => setSystemSettings({ ...systemSettings, [key]: e.target.value })}
+                                    className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500 font-mono text-[11px]"
+                                  />
+                                )}
+                                <button
+                                  onClick={() => handleSaveControllerKey(key, systemSettings[key])}
+                                  disabled={savingControllerKey === key}
+                                  className="px-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg transition font-semibold flex items-center justify-center cursor-pointer"
+                                >
+                                  {savingControllerKey === key ? 'Saving' : 'Save'}
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+
       case 'settings': {
         const isOwner = currentUser?.designation === 'Owner';
         return (
@@ -317,72 +427,6 @@ export default function Home() {
                           <span className="text-[10px] text-slate-500 block">
                             Broad context given to the agent for general solar Q&amp;A.
                           </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-800/80 pt-4">
-                          <div className="space-y-1.5">
-                            <label className="text-slate-300 font-semibold block">
-                              Bot WhatsApp Number (Waha Instance)
-                            </label>
-                            <input
-                              type="text"
-                              value={aiSettings.bot_whatsapp_number}
-                              onChange={(e) => setAiSettings({ ...aiSettings, bot_whatsapp_number: e.target.value })}
-                              placeholder="e.g. 6386434561"
-                              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 font-mono text-[11px]"
-                            />
-                            <span className="text-[10px] text-slate-500 block">
-                              Number linked with the Waha QR Code instance.
-                            </span>
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <label className="text-slate-300 font-semibold block">
-                              Owner WhatsApp Number (Alerts)
-                            </label>
-                            <input
-                              type="text"
-                              value={aiSettings.owner_whatsapp_number}
-                              onChange={(e) => setAiSettings({ ...aiSettings, owner_whatsapp_number: e.target.value })}
-                              placeholder="e.g. 917052051010"
-                              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 font-mono text-[11px]"
-                            />
-                            <span className="text-[10px] text-slate-500 block">
-                              Target phone number to receive instant administrative alerts.
-                            </span>
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <label className="text-slate-300 font-semibold block">
-                              Waha API URL (Server Endpoint)
-                            </label>
-                            <input
-                              type="text"
-                              value={aiSettings.waha_api_url}
-                              onChange={(e) => setAiSettings({ ...aiSettings, waha_api_url: e.target.value })}
-                              placeholder="e.g. http://localhost:3000"
-                              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 font-mono text-[11px]"
-                            />
-                            <span className="text-[10px] text-slate-500 block">
-                              Endpoint URL where your WAHA service is hosted.
-                            </span>
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <label className="text-slate-300 font-semibold block">
-                              Waha API Key (Security Token)
-                            </label>
-                            <input
-                              type="password"
-                              value={aiSettings.waha_api_key}
-                              onChange={(e) => setAiSettings({ ...aiSettings, waha_api_key: e.target.value })}
-                              placeholder="Optional - Enter Waha API Key if configured"
-                              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 font-mono text-[11px]"
-                            />
-                            <span className="text-[10px] text-slate-500 block">
-                              API Key token to authenticate with the WAHA server.
-                            </span>
-                          </div>
                         </div>
 
                         {saveStatus && (
