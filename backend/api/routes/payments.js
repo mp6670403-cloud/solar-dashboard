@@ -81,6 +81,22 @@ router.post('/:id/reminder', authenticateToken, async (req, res) => {
     // Trigger n8n webhook
     let n8nResult = null;
     if (n8nConfig.workflows && n8nConfig.workflows.payment_reminder) {
+      let ownerPhone = '917052051010';
+      let botPhone = '6386434561';
+      let wahaApiUrl = 'http://localhost:3000';
+      try {
+        const settingsRes = await db.query(
+          "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('owner_whatsapp_number', 'bot_whatsapp_number', 'waha_api_url')"
+        );
+        settingsRes.rows.forEach(row => {
+          if (row.setting_key === 'owner_whatsapp_number') ownerPhone = row.setting_value;
+          if (row.setting_key === 'bot_whatsapp_number') botPhone = row.setting_value;
+          if (row.setting_key === 'waha_api_url') wahaApiUrl = row.setting_value;
+        });
+      } catch (dbErr) {
+        console.warn('Could not read system settings from db:', dbErr.message);
+      }
+
       n8nResult = await triggerWorkflow(n8nConfig.workflows.payment_reminder.webhook_url, {
         payment_id: payment.id,
         customer_name: payment.customer_name,
@@ -89,7 +105,10 @@ router.post('/:id/reminder', authenticateToken, async (req, res) => {
         amount: payment.amount,
         due_date: payment.due_date,
         project_name: payment.project_name,
-        payment_stage: payment.payment_stage
+        payment_stage: payment.payment_stage,
+        owner_phone: ownerPhone,
+        bot_phone: botPhone,
+        waha_api_url: wahaApiUrl
       });
     }
 

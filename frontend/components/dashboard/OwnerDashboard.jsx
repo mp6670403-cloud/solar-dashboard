@@ -108,14 +108,14 @@ const DEMO_B2C_PROJECTS = [
 ];
 
 const FALLBACK_ROLE_ACTIVITIES = {
-  Sales: [
+  'Sales Head': [
     { id: 101, type: 'info',    message: 'New lead added: Amit Joshi — 15 kW system inquiry', time: '3 hours ago' },
     { id: 102, type: 'info',    message: 'Workflow triggered: WhatsApp follow-up sent to 4 leads', time: '12 hours ago' },
     { id: 103, type: 'success', message: 'Lead qualified: Rajesh Patel updated to Site Survey stage', time: '1 day ago' },
     { id: 104, type: 'info',    message: 'Lead inquiry: Sunita Reddy requested commercial site visit', time: '1 day ago' },
     { id: 105, type: 'warning', message: 'Follow-up overdue for Neha Joshi (Sales rep assigned)', time: '2 days ago' },
   ],
-  Operations: [
+  'Operations Head': [
     { id: 201, type: 'warning', message: 'Site survey pending for Meena Shah (Ahmedabad)', time: '5 hours ago' },
     { id: 202, type: 'success', message: 'Project milestone completed: Panel installation at Surat site', time: '8 hours ago' },
     { id: 203, type: 'info',    message: 'BOM check: All solar panels dispatched for Bansal Residence', time: '1 day ago' },
@@ -130,11 +130,11 @@ const FALLBACK_ROLE_ACTIVITIES = {
     { id: 305, type: 'info',    message: 'Candidate interview scheduled: Technical round for Telecaller position', time: '1 day ago' },
   ],
   'B2B Sales': [
-    { id: 401, type: 'success', message: 'Order #101 delivered to Bhushan Solar Systems — 50x Mono PERC 540W', time: '2 hours ago' },
+    { id: 401, type: 'success', message: 'Order #101 delivered to Helius Solar Systems — 50x Mono PERC 540W', time: '2 hours ago' },
     { id: 402, type: 'info',    message: 'New order placed by Apex Green Solutions — 20x Mono PERC 540W (Pending Owner Approval)', time: '5 hours ago' },
     { id: 403, type: 'warning', message: 'Payment overdue: Aditya Power EPC — Invoice SLV-B2B-002 (₹2.65L) past due', time: '1 day ago' },
-    { id: 404, type: 'info',    message: 'WhatsApp dispatch alert sent to Bhushan Solar — Order #104 via Delhivery', time: '1 day ago' },
-    { id: 405, type: 'success', message: 'Invoice SLV-B2B-001 payment received from Bhushan Solar — ₹5.43L RTGS', time: '2 days ago' },
+    { id: 404, type: 'info',    message: 'WhatsApp dispatch alert sent to Helius Solar — Order #104 via Delhivery', time: '1 day ago' },
+    { id: 405, type: 'success', message: 'Invoice SLV-B2B-001 payment received from Helius Solar — ₹5.43L RTGS', time: '2 days ago' },
   ]
 };
 
@@ -155,9 +155,9 @@ export default function OwnerDashboard({ user }) {
   const userRole = user?.designation || 'Owner';
   const isOwner = userRole === 'Owner';
   const isHR = userRole === 'HR';
-  const isSales = userRole === 'Sales';
+  const isSales = userRole === 'Sales Head';
   const isB2BSales = userRole === 'B2B Sales';
-  const isOps = userRole === 'Operations';
+  const isOps = userRole === 'Operations Head';
 
   const [stats, setStats] = useState(DEMO_STATS);
   const [recentLeads, setRecentLeads] = useState(DEMO_RECENT_LEADS);
@@ -1478,9 +1478,9 @@ export default function OwnerDashboard({ user }) {
                     {(staffList.length > 0 ? staffList : [
                       { id: 1, full_name: 'Rajesh Gupta', username: 'owner', designation: 'Owner' },
                       { id: 2, full_name: 'Priya Sharma', username: 'hr_user', designation: 'HR' },
-                      { id: 3, full_name: 'Amit Verma', username: 'sales_user', designation: 'Sales' },
-                      { id: 4, full_name: 'Suresh Patel', username: 'ops_user', designation: 'Operations' },
-                      { id: 5, full_name: 'Vikram Malhotra', username: 'installer', designation: 'Operations' }
+                      { id: 3, full_name: 'Amit Verma', username: 'sales_user', designation: 'Sales Head' },
+                      { id: 4, full_name: 'Suresh Patel', username: 'ops_user', designation: 'Operations Head' },
+                      { id: 5, full_name: 'Vikram Malhotra', username: 'installer', designation: 'Operations Head' }
                     ]).map(usr => {
                       const statusData = getAttendanceForUser(usr.id);
                       return (

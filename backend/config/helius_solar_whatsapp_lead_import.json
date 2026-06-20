@@ -1,0 +1,78 @@
+{
+  "name": "Helius Solar WhatsApp Lead Auto-Import",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-incoming",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ],
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger (From WhatsApp)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5000/api/workflows/webhook/whatsapp",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "sender_name",
+              "value": "={{ $json.body.sender_name || 'WhatsApp Contact' }}"
+            },
+            {
+              "name": "sender_phone",
+              "value": "={{ $json.body.sender_phone || $json.body.from }}"
+            },
+            {
+              "name": "message_text",
+              "value": "={{ $json.body.message_text || $json.body.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        500,
+        300
+      ],
+      "id": "http-request-crm",
+      "name": "Send to Helius CRM Backend"
+    }
+  ],
+  "connections": {
+    "Webhook Trigger (From WhatsApp)": {
+      "main": [
+        [
+          {
+            "node": "Send to Helius CRM Backend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": "helius-lead-import"
+}

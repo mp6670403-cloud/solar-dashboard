@@ -44,7 +44,8 @@ const mockDb = {
   attendance: [],
   leave_requests: [],
   candidates: [],
-  expense_claims: []
+  expense_claims: [],
+  system_settings: []
 };
 
 // Helper: generate next ID for a table
@@ -66,11 +67,11 @@ const seedMockDb = async () => {
 
   // --- USERS (5 default users as specified) ---
   mockDb.users = [
-    { id: 1, username: 'owner', password_hash: hash, designation: 'Owner', full_name: 'Rajesh Gupta', email: 'rajesh@solarsynergy.in' },
-    { id: 2, username: 'hr_user', password_hash: hash, designation: 'HR', full_name: 'Priya Sharma', email: 'priya@solarsynergy.in' },
-    { id: 3, username: 'sales_user', password_hash: hash, designation: 'Sales', full_name: 'Amit Verma', email: 'amit@solarsynergy.in' },
-    { id: 4, username: 'ops_user', password_hash: hash, designation: 'Operations', full_name: 'Suresh Patel', email: 'suresh@solarsynergy.in' },
-    { id: 5, username: 'b2b_sales', password_hash: hash, designation: 'B2B Sales', full_name: 'Ankit Sharma', email: 'ankit@solarsynergy.in' }
+    { id: 1, username: 'owner', password_hash: hash, designation: 'Owner', full_name: 'Rajesh Gupta', email: 'rajesh@heliussolar.in' },
+    { id: 2, username: 'hr_user', password_hash: hash, designation: 'HR', full_name: 'Priya Sharma', email: 'priya@heliussolar.in' },
+    { id: 3, username: 'sales_user', password_hash: hash, designation: 'Sales Head', full_name: 'Amit Verma', email: 'amit@heliussolar.in' },
+    { id: 4, username: 'ops_user', password_hash: hash, designation: 'Operations Head', full_name: 'Suresh Patel', email: 'suresh@heliussolar.in' },
+    { id: 5, username: 'b2b_sales', password_hash: hash, designation: 'B2B Sales', full_name: 'Ankit Sharma', email: 'ankit@heliussolar.in' }
   ];
 
   // --- LEADS (Solar EPC leads from various sources) ---
@@ -269,6 +270,15 @@ const seedMockDb = async () => {
     { id: 4, user_id: 5, user_name: 'Ankit Sharma', project_id: null, project_name: 'Market Survey', expense_type: 'Travel', amount: 2500, description: 'Train ticket to Ahmedabad for dealer meeting', bill_date: '2026-06-10', status: 'Approved', submitted_on: '2026-06-12', reviewed_by: 'Priya Sharma' },
     { id: 5, user_id: 4, user_name: 'Suresh Patel', project_id: 1, project_name: 'Bansal Residence 8kW', expense_type: 'Tools', amount: 1800, description: 'Crimping tool and MC4 connector kit purchase', bill_date: '2026-06-13', status: 'Paid', submitted_on: '2026-06-14', reviewed_by: 'Rajesh Gupta' },
     { id: 6, user_id: 4, user_name: 'Suresh Patel', project_id: 2, project_name: 'Choudhary Factory 50kW', expense_type: 'Accommodation', amount: 3500, description: '2 nights stay at Bhiwadi during commissioning', bill_date: '2026-06-18', status: 'Pending', submitted_on: '2026-06-19', reviewed_by: null }
+  ];
+
+  mockDb.system_settings = [
+    { setting_key: 'surya_strategy_override', setting_value: 'Pitch standard Helius Solar rates at ₹60,000 per kW. Highlight Lucknow location.' },
+    { setting_key: 'active_offers', setting_value: 'Monsoon Offer: ₹5,000 cash discount on systems 5kW and above.' },
+    { setting_key: 'sales_strategy', setting_value: 'Focus on central subsidy of ₹78,000.' },
+    { setting_key: 'bot_whatsapp_number', setting_value: '6386434561' },
+    { setting_key: 'owner_whatsapp_number', setting_value: '917052051010' },
+    { setting_key: 'waha_api_url', setting_value: 'http://localhost:3000' }
   ];
 
   console.log('[Mock DB] Mock database seeded successfully with Solar EPC data.');
@@ -714,10 +724,32 @@ const executeMockQuery = (text, params) => {
 
   // ---- WEBHOOK LOGS ----
   if (q.includes('insert into webhook_logs')) {
+    let webhook_source = 'Unknown';
+    let payload = '';
+    let status = 'Pending';
+    let error_details = '';
+    
+    if (q.includes('webhook_source, payload, status, error_details')) {
+      webhook_source = 'WhatsApp';
+      payload = params[0];
+      status = 'Failed';
+      error_details = params[1];
+    } else if (q.includes('webhook_source, payload, status, created_at')) {
+      webhook_source = 'WhatsApp';
+      payload = params[0];
+      status = 'Success';
+    } else if (q.includes('webhook_source, payload, status')) {
+      webhook_source = params[0];
+      payload = params[1];
+      status = params[2];
+    }
+    
     const newLog = {
       id: nextId('webhook_logs'),
-      direction: params[0] || 'Incoming', workflow_name: params[1] || 'Webhook',
-      payload: params[2], status: params[3] || 'success',
+      webhook_source,
+      payload,
+      status,
+      error_details,
       created_at: now()
     };
     mockDb.webhook_logs.push(newLog);
@@ -725,6 +757,18 @@ const executeMockQuery = (text, params) => {
   }
   if (q.includes('from webhook_logs')) {
     return { rows: [...mockDb.webhook_logs].sort((a, b) => b.created_at.localeCompare(a.created_at)) };
+  }
+
+  // ---- SYSTEM SETTINGS ----
+  if (q.includes('from system_settings')) {
+    return { rows: [...mockDb.system_settings] };
+  }
+  if (q.includes('update system_settings') && q.includes('where setting_key')) {
+    const val = params[0];
+    const key = params[1];
+    const setting = mockDb.system_settings.find(s => s.setting_key === key);
+    if (setting) setting.setting_value = val;
+    return { rows: setting ? [setting] : [], rowCount: setting ? 1 : 0 };
   }
 
   // ---- AI SUGGESTIONS ----
@@ -969,11 +1013,19 @@ const initializeDatabase = async () => {
       await client.query(`
         CREATE TABLE IF NOT EXISTS webhook_logs (
           id SERIAL PRIMARY KEY,
-          direction VARCHAR(20),
-          workflow_name VARCHAR(100),
+          webhook_source VARCHAR(100),
           payload TEXT,
           status VARCHAR(50),
+          error_details TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS system_settings (
+          setting_key VARCHAR(50) PRIMARY KEY,
+          setting_value TEXT,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `);
 
@@ -999,6 +1051,21 @@ const initializeDatabase = async () => {
         );
       `);
 
+      // Seed system_settings if empty
+      const settingsCount = await client.query('SELECT COUNT(*) FROM system_settings');
+      if (parseInt(settingsCount.rows[0].count, 10) === 0) {
+        console.log('Seeding system settings...');
+        await client.query(`
+          INSERT INTO system_settings (setting_key, setting_value) VALUES
+          ('surya_strategy_override', 'Pitch standard Helius Solar rates at ₹60,000 per kW. Highlight Lucknow location.'),
+          ('active_offers', 'Monsoon Offer: ₹5,000 cash discount on systems 5kW and above.'),
+          ('sales_strategy', 'Focus on central subsidy of ₹78,000.'),
+          ('bot_whatsapp_number', '6386434561'),
+          ('owner_whatsapp_number', '917052051010'),
+          ('waha_api_url', 'http://localhost:3000');
+        `);
+      }
+
       // Seed if empty (only users check shown; full seeding would mirror mockDb data)
       const userCount = await client.query('SELECT COUNT(*) FROM users');
       if (parseInt(userCount.rows[0].count, 10) === 0) {
@@ -1007,10 +1074,10 @@ const initializeDatabase = async () => {
         const hash = await bcrypt.hash('password123', salt);
         await client.query(`
           INSERT INTO users (username, password_hash, designation, full_name, email) VALUES
-          ('owner', $1, 'Owner', 'Rajesh Gupta', 'rajesh@solarsynergy.in'),
-          ('hr_user', $1, 'HR', 'Priya Sharma', 'priya@solarsynergy.in'),
-          ('sales_user', $1, 'Sales', 'Amit Verma', 'amit@solarsynergy.in'),
-          ('ops_user', $1, 'Operations', 'Suresh Patel', 'suresh@solarsynergy.in');
+          ('owner', $1, 'Owner', 'Rajesh Gupta', 'rajesh@heliussolar.in'),
+          ('hr_user', $1, 'HR', 'Priya Sharma', 'priya@heliussolar.in'),
+          ('sales_user', $1, 'Sales Head', 'Amit Verma', 'amit@heliussolar.in'),
+          ('ops_user', $1, 'Operations Head', 'Suresh Patel', 'suresh@heliussolar.in');
         `, [hash]);
       }
 

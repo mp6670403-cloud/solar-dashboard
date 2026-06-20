@@ -55,44 +55,95 @@ router.post('/trigger', authenticateToken, async (req, res) => {
   }
 });
 
+// GET /api/workflows/logs (Retrieves webhook logs for the workflow panel)
+router.get('/logs', authenticateToken, async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM webhook_logs ORDER BY created_at DESC LIMIT 20');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching webhook logs:', error);
+    res.status(500).json({ error: 'Failed to fetch webhook logs' });
+  }
+});
+
 // POST /api/workflows/webhook/whatsapp (Incoming webhook from WhatsApp / n8n)
 // This endpoint receives WhatsApp chat data, processes it, and auto-creates leads
 router.post('/webhook/whatsapp', async (req, res) => {
-  const { sender_name, sender_phone, message_text, details } = req.body;
+  const { sender_name, sender_phone, message_text, kw_capacity, monthly_bill, city } = req.body;
 
   if (!sender_phone || !message_text) {
     return res.status(400).json({ error: 'Sender phone and message text are required' });
   }
 
   try {
-    // 1. Analyze text for lead qualities
     const textLower = message_text.toLowerCase();
-    let kw = 5; // default
-    let stage = 'New Inquiry';
     
-    // Simple parsing logic
-    if (textLower.includes('kw') || textLower.includes('kilowatt')) {
-      const match = textLower.match(/(\d+)\s*(?:kw|kilowatt)/);
-      if (match) kw = parseInt(match[1], 10);
+    // 1. Parse and extract requirements
+    let kw = parseInt(kw_capacity, 10);
+    if (isNaN(kw)) {
+      kw = 5; // default fallback
+      if (textLower.includes('kw') || textLower.includes('kilowatt')) {
+        const match = textLower.match(/(\d+)\s*(?:kw|kilowatt)/);
+        if (match) kw = parseInt(match[1], 10);
+      }
     }
 
-    // AI score simulation
-    let aiScore = 55;
-    if (textLower.includes('rooftop') || textLower.includes('bill')) aiScore += 25;
-    if (kw > 10) aiScore += 15;
+    let bill = parseInt(monthly_bill, 10) || 0;
+
+    // AI score calculation
+    let aiScore = 50;
+    if (bill > 5000 || textLower.includes('bill')) aiScore += 20;
+    if (kw >= 5) aiScore += 20;
+    if (textLower.includes('rooftop')) aiScore += 10;
     aiScore = Math.min(100, aiScore);
 
-    // 2. Insert into leads table
-    const queryText = `
-      INSERT INTO leads (name, phone, source, stage, assigned_to, kw_capacity, ai_score, notes, created_at, updated_at)
-      VALUES ($1, $2, 'WhatsApp', $3, 'Amit Verma', $4, $5, $6, NOW(), NOW())
-      RETURNING *
-    `;
     const notes = `Auto-captured from WhatsApp chat message: "${message_text}"`;
-    const result = await db.query(queryText, [sender_name || 'WhatsApp Contact', sender_phone, stage, kw, aiScore, notes]);
-    const lead = result.rows[0];
+    const stage = 'New Inquiry';
+    let lead;
 
-    // Log webhook execution
+    // 2. Check if lead already exists to prevent duplication
+    const checkRes = await db.query('SELECT * FROM leads WHERE phone = $1', [sender_phone]);
+    if (checkRes.rows.length > 0) {
+      // Update existing lead details
+      const existing = checkRes.rows[0];
+      const updateText = `
+        UPDATE leads
+        SET name = $1, kw_capacity = $2, monthly_bill = $3, roof_area = $4, ai_score = $5, 
+            notes = $6, updated_at = NOW()
+        WHERE id = $7
+        RETURNING *
+      `;
+      const updateRes = await db.query(updateText, [
+        sender_name || existing.name,
+        kw,
+        bill,
+        kw * 100,
+        aiScore,
+        existing.notes ? `${existing.notes}\n\n[Update] ${notes}` : notes,
+        existing.id
+      ]);
+      lead = updateRes.rows[0];
+    } else {
+      // Insert new lead record
+      const queryText = `
+        INSERT INTO leads (name, phone, source, stage, assigned_to, kw_capacity, monthly_bill, roof_area, ai_score, notes, created_at, updated_at)
+        VALUES ($1, $2, 'WhatsApp', $3, 'Amit Verma', $4, $5, $6, $7, $8, NOW(), NOW())
+        RETURNING *
+      `;
+      const insertRes = await db.query(queryText, [
+        sender_name || 'WhatsApp Contact',
+        sender_phone,
+        stage,
+        kw,
+        bill,
+        kw * 100,
+        aiScore,
+        notes
+      ]);
+      lead = insertRes.rows[0];
+    }
+
+    // Log webhook execution successfully
     await db.query(
       `INSERT INTO webhook_logs (webhook_source, payload, status, created_at)
        VALUES ('WhatsApp', $1, 'Success', NOW())`,
@@ -102,7 +153,7 @@ router.post('/webhook/whatsapp', async (req, res) => {
     // Log system event
     await db.query(
       `INSERT INTO system_logs (user_role, action_type, details)
-       VALUES ('System', 'WhatsApp Webhook Lead', 'Auto-created lead ${lead.name} from WhatsApp message: ${sender_phone}')`
+       VALUES ('System', 'WhatsApp Webhook Lead', 'Auto-created/updated lead ${lead.name} from WhatsApp message: ${sender_phone}')`
     );
 
     res.json({

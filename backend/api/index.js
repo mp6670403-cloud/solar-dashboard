@@ -15,6 +15,7 @@ const dashboardRoutes = require('./routes/dashboard');
 const staffRoutes = require('./routes/staff');
 const b2bRoutes = require('./routes/b2b');
 const b2cRoutes = require('./routes/b2c');
+const auditRoutes = require('./routes/audit');
 
 // Legacy router (for backward compatibility)
 const legacyRoutes = require('./routes');
@@ -45,6 +46,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/b2b', b2bRoutes);
 app.use('/api/b2c', b2cRoutes);
+app.use('/api/audit', auditRoutes);
 
 // Mount Legacy Routes directly under /api for older clients
 app.use('/api', legacyRoutes);

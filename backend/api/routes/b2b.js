@@ -1,6 +1,18 @@
 const express = require('express');
 const db = require('../../db');
 const { authenticateToken, checkRole } = require('../middleware/auth');
+const { triggerWorkflow } = require('../../integrations/n8n');
+const n8nConfig = require('../../config/n8n.config.json');
+const {
+  validateStockAvailability,
+  validateCreditLimit,
+  validateDuplicateTransaction,
+  validateGSTIN,
+  validateNegativeStock,
+  validatePriceFloor
+} = require('../middleware/rules');
+const { auditLog } = require('../middleware/audit');
+const { sendWhatsApp } = require('../../integrations/whatsapp');
 
 const router = express.Router();
 
@@ -47,6 +59,26 @@ let b2bLedgers = [
 
 let b2bStockInLogs = [
   { id: 1, date: '2026-06-10', supplier: 'Luminous Power Technologies', product_name: 'Luminous Mono PERC 540W Panel', quantity: 200, status: 'Confirmed', verified_by: 'Suresh Patel' }
+];
+
+// AI Pricing Memory (learning loop)
+let b2bPricingMemory = [
+  { id: 1, vendor_id: 1, vendor_name: 'Bhushan Solar Systems (EPC)', product_id: 1, product_name: 'Luminous Mono PERC 540W Panel', quantity_range: '20-50', margin_given: 8, approved_by: 'Owner', date: '2026-06-10' },
+  { id: 2, vendor_id: 1, vendor_name: 'Bhushan Solar Systems (EPC)', product_id: 1, product_name: 'Luminous Mono PERC 540W Panel', quantity_range: '50-100', margin_given: 10, approved_by: 'Owner', date: '2026-06-12' },
+  { id: 3, vendor_id: 2, vendor_name: 'Aditya Power EPC', product_id: 3, product_name: 'Luminous Solar Inverter 5kVA', quantity_range: '5-10', margin_given: 5, approved_by: 'Owner', date: '2026-06-15' },
+];
+
+// Task Lifecycle Tracking
+let b2bTasks = [
+  { id: 1, type: 'delivery', reference_id: 101, title: 'Deliver Order #101 to Bhushan Solar', assigned_to: 'Suresh Patel', status: 'Closed', proof_url: '', created_at: '2026-06-15T10:00:00Z', deadline: '2026-06-16T18:00:00Z', closed_at: '2026-06-16T14:00:00Z', proof_submitted: true, verified_by: 'Owner' },
+  { id: 2, type: 'delivery', reference_id: 102, title: 'Deliver Order #102 to Aditya Power', assigned_to: 'Suresh Patel', status: 'In Progress', proof_url: '', created_at: '2026-06-18T14:30:00Z', deadline: '2026-06-20T18:00:00Z', closed_at: null, proof_submitted: false, verified_by: null },
+];
+
+// Vendor Credit Scores
+let b2bCreditScores = [
+  { vendor_id: 1, vendor_name: 'Bhushan Solar Systems (EPC)', score: 87, payment_on_time: 95, order_frequency: 'High', overdue_count: 1, last_calculated: '2026-06-19' },
+  { vendor_id: 2, vendor_name: 'Aditya Power EPC', score: 52, payment_on_time: 60, order_frequency: 'Medium', overdue_count: 4, last_calculated: '2026-06-19' },
+  { vendor_id: 3, vendor_name: 'Apex Green Solutions (EPC)', score: 28, payment_on_time: 30, order_frequency: 'Low', overdue_count: 8, last_calculated: '2026-06-19' },
 ];
 
 // ============================================================================
@@ -168,7 +200,25 @@ router.get('/orders', authenticateToken, async (req, res) => {
   res.json(b2bOrders);
 });
 
-router.post('/orders', authenticateToken, async (req, res) => {
+const getB2BProduct = (req) => b2bPriceList.find(p => p.id == req.body.product_id);
+const getRequestedQty = (req) => parseInt(req.body.quantity, 10) || 0;
+const getB2BClient = (req) => b2bClients.find(c => c.id == req.body.client_id);
+const getOrderTotal = (req) => {
+  const product = b2bPriceList.find(p => p.id == req.body.product_id);
+  const qty = parseInt(req.body.quantity, 10) || 0;
+  const rate = parseFloat(req.body.rate) || (product ? product.rate : 0);
+  return qty * rate;
+};
+const getB2BOrders = () => b2bOrders;
+
+router.post('/orders',
+  authenticateToken,
+  validateStockAvailability(getB2BProduct, getRequestedQty),
+  validateCreditLimit(getB2BClient, getOrderTotal),
+  validateDuplicateTransaction(getB2BOrders),
+  validatePriceFloor(getB2BProduct),
+  auditLog('b2b_order_placed', (req) => `Client ID: ${req.body.client_id}, Product ID: ${req.body.product_id}, Qty: ${req.body.quantity}`),
+  async (req, res) => {
   const { client_id, product_id, quantity, rate, delivery_address } = req.body;
   const client = b2bClients.find(c => c.id == client_id);
   const product = b2bPriceList.find(p => p.id == product_id);
@@ -178,11 +228,6 @@ router.post('/orders', authenticateToken, async (req, res) => {
   const qty = parseInt(quantity, 10);
   const priceRate = parseFloat(rate) || product.rate;
   const total = qty * priceRate;
-
-  // Stock check
-  if (product.stock_level < qty) {
-    return res.status(400).json({ error: `Insufficient stock. Available: ${product.stock_level}` });
-  }
 
   const newOrder = {
     id: b2bOrders.length + 101,
@@ -200,6 +245,38 @@ router.post('/orders', authenticateToken, async (req, res) => {
     e_way_bill: ''
   };
   b2bOrders.push(newOrder);
+
+  // Trigger n8n webhook alert
+  if (n8nConfig.workflows && n8nConfig.workflows.b2b_order_placed) {
+    let ownerPhone = '917052051010';
+    let botPhone = '6386434561';
+    let wahaApiUrl = 'http://localhost:3000';
+    try {
+      const settingsRes = await db.query(
+        "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('owner_whatsapp_number', 'bot_whatsapp_number', 'waha_api_url')"
+      );
+      settingsRes.rows.forEach(row => {
+        if (row.setting_key === 'owner_whatsapp_number') ownerPhone = row.setting_value;
+        if (row.setting_key === 'bot_whatsapp_number') botPhone = row.setting_value;
+        if (row.setting_key === 'waha_api_url') wahaApiUrl = row.setting_value;
+      });
+    } catch (dbErr) {
+      console.warn('Could not read system settings from db:', dbErr.message);
+    }
+
+    triggerWorkflow(n8nConfig.workflows.b2b_order_placed.webhook_url, {
+      order_id: newOrder.id,
+      client_name: newOrder.client_name,
+      product_name: newOrder.product_name,
+      quantity: newOrder.quantity,
+      total_amount: newOrder.total_amount,
+      phone: client.phone,
+      owner_phone: ownerPhone,
+      bot_phone: botPhone,
+      waha_api_url: wahaApiUrl
+    }).catch(err => console.warn('n8n B2B order alert failed:', err.message));
+  }
+
   res.status(201).json(newOrder);
 });
 
@@ -274,12 +351,75 @@ router.put('/orders/:id', authenticateToken, async (req, res) => {
       if (order.total_amount >= 50000) {
         order.e_way_bill = `EWB-2026-${Math.floor(1000 + Math.random() * 9000)}-SLV`;
       }
+
+      // Trigger n8n webhook confirmed alert
+      if (n8nConfig.workflows && n8nConfig.workflows.b2b_order_confirmed) {
+        let ownerPhone = '917052051010';
+        let botPhone = '6386434561';
+        let wahaApiUrl = 'http://localhost:3000';
+        try {
+          const settingsRes = await db.query(
+            "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('owner_whatsapp_number', 'bot_whatsapp_number', 'waha_api_url')"
+          );
+          settingsRes.rows.forEach(row => {
+            if (row.setting_key === 'owner_whatsapp_number') ownerPhone = row.setting_value;
+            if (row.setting_key === 'bot_whatsapp_number') botPhone = row.setting_value;
+            if (row.setting_key === 'waha_api_url') wahaApiUrl = row.setting_value;
+          });
+        } catch (dbErr) {
+          console.warn('Could not read system settings from db:', dbErr.message);
+        }
+
+        triggerWorkflow(n8nConfig.workflows.b2b_order_confirmed.webhook_url, {
+          order_id: order.id,
+          client_name: order.client_name,
+          invoice_no: newInvoice.invoice_no,
+          total_amount: newInvoice.total_amount,
+          phone: client ? client.phone : '',
+          owner_phone: ownerPhone,
+          bot_phone: botPhone,
+          waha_api_url: wahaApiUrl
+        }).catch(err => console.warn('n8n B2B confirmed alert failed:', err.message));
+      }
     }
     
-    // Simulate WhatsApp Alert for Dispatch
+    // Trigger WhatsApp Alert for Dispatch via n8n
     if (status === 'Dispatched') {
       const client = b2bClients.find(c => c.id === order.client_id);
-      console.log(`[WHATSAPP ALERT SENT] 📱 To: ${client?.phone || 'Customer'} | Msg: Dear ${client?.business_name || 'Customer'}, your B2B order #${order.id} has been dispatched via ${logistics_partner || 'Transport'}. LR/Tracking No: ${booking_id}. E-Way Bill: ${e_way_bill || 'N/A'}`);
+      const trackingUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/track?orderId=${order.id}`;
+      
+      if (n8nConfig.workflows && n8nConfig.workflows.b2b_order_dispatched) {
+        let ownerPhone = '917052051010';
+        let botPhone = '6386434561';
+        let wahaApiUrl = 'http://localhost:3000';
+        try {
+          const settingsRes = await db.query(
+            "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('owner_whatsapp_number', 'bot_whatsapp_number', 'waha_api_url')"
+          );
+          settingsRes.rows.forEach(row => {
+            if (row.setting_key === 'owner_whatsapp_number') ownerPhone = row.setting_value;
+            if (row.setting_key === 'bot_whatsapp_number') botPhone = row.setting_value;
+            if (row.setting_key === 'waha_api_url') wahaApiUrl = row.setting_value;
+          });
+        } catch (dbErr) {
+          console.warn('Could not read system settings from db:', dbErr.message);
+        }
+
+        triggerWorkflow(n8nConfig.workflows.b2b_order_dispatched.webhook_url, {
+          order_id: order.id,
+          client_name: order.client_name,
+          logistics_partner: logistics_partner || order.logistics_partner || 'Courier',
+          tracking_no: booking_id || order.booking_id || 'N/A',
+          e_way_bill: e_way_bill || order.e_way_bill || 'N/A',
+          tracking_url: trackingUrl,
+          phone: client ? client.phone : '',
+          owner_phone: ownerPhone,
+          bot_phone: botPhone,
+          waha_api_url: wahaApiUrl
+        }).catch(err => console.warn('n8n B2B dispatch alert failed:', err.message));
+      }
+      const messageText = `Dear ${client?.business_name || 'Customer'}, your B2B order #${order.id} has been dispatched. Track live: ${trackingUrl}`;
+      sendWhatsApp(client?.phone || '', messageText).catch(err => console.error('Failed to send dispatch WhatsApp alert:', err.message));
     }
   }
   
@@ -369,8 +509,9 @@ router.post('/payments-manual', authenticateToken, async (req, res) => {
         created_at: new Date().toISOString()
       });
 
-      // Simulate WhatsApp Alert for Payment Receipt
-      console.log(`[WHATSAPP ALERT SENT] 📱 To: ${client.phone} | Msg: Dear ${client.business_name}, we have received your payment of Rs. ${invoice.total_amount.toLocaleString('en-IN')} for Invoice ${invoice.invoice_no}. Thank you!`);
+      // Send WhatsApp Alert for Payment Receipt
+      const messageText = `Dear ${client.business_name}, we have received your payment of Rs. ${invoice.total_amount.toLocaleString('en-IN')} for Invoice ${invoice.invoice_no}. Thank you!`;
+      sendWhatsApp(client.phone, messageText).catch(err => console.error('Failed to send payment WhatsApp alert:', err.message));
     }
   }
 
@@ -382,6 +523,158 @@ router.post('/payments-manual', authenticateToken, async (req, res) => {
 
 router.get('/stock-in-logs', authenticateToken, async (req, res) => {
   res.json(b2bStockInLogs);
+});
+
+// GET /api/b2b/track/:id (PUBLIC tracking endpoint for dealers)
+router.get('/track/:id', async (req, res) => {
+  const order = b2bOrders.find(o => o.id == req.params.id);
+  if (!order) return res.status(404).json({ error: 'Order not found' });
+  
+  // Find associated invoice
+  const invoice = b2bInvoices.find(i => i.order_id == order.id);
+  
+  res.json({
+    id: order.id,
+    client_name: order.client_name,
+    product_name: order.product_name,
+    quantity: order.quantity,
+    status: order.status,
+    created_at: order.created_at,
+    delivery_address: order.delivery_address,
+    logistics_partner: order.logistics_partner || null,
+    booking_id: order.booking_id || null,
+    e_way_bill: order.e_way_bill || null,
+    invoice: invoice || null
+  });
+});
+
+// ============================================================================
+// 8. AI PRICING MEMORY (Learning Loop)
+// ============================================================================
+router.get('/pricing-memory', authenticateToken, (req, res) => { res.json(b2bPricingMemory); });
+router.get('/pricing-memory/:vendor_id', authenticateToken, (req, res) => {
+  const vendorMemory = b2bPricingMemory.filter(m => m.vendor_id == req.params.vendor_id);
+  res.json(vendorMemory);
+});
+router.post('/pricing-memory', authenticateToken, (req, res) => {
+  const { vendor_id, vendor_name, product_id, product_name, quantity_range, margin_given } = req.body;
+  const newMemory = {
+    id: b2bPricingMemory.length + 1,
+    vendor_id: parseInt(vendor_id), vendor_name, product_id: parseInt(product_id), product_name,
+    quantity_range, margin_given: parseFloat(margin_given),
+    approved_by: req.user?.full_name || 'Owner',
+    date: new Date().toISOString().split('T')[0]
+  };
+  b2bPricingMemory.push(newMemory);
+  res.status(201).json(newMemory);
+});
+
+// AI Price Suggestion (Learning Loop)
+router.get('/price-suggest/:vendor_id/:product_id', authenticateToken, (req, res) => {
+  const { vendor_id, product_id } = req.params;
+  const quantity = parseInt(req.query.quantity) || 1;
+  const memories = b2bPricingMemory.filter(m => m.vendor_id == vendor_id && m.product_id == product_id);
+  const product = b2bPriceList.find(p => p.id == product_id);
+  const vendor = b2bClients.find(c => c.id == vendor_id);
+  
+  if (!product) return res.status(404).json({ error: 'Product not found' });
+  
+  let suggestion = { confidence: 'low', recommended_margin: 0, reason: '' };
+  
+  if (memories.length >= 5) {
+    const avgMargin = memories.reduce((sum, m) => sum + m.margin_given, 0) / memories.length;
+    suggestion = { confidence: 'high', recommended_margin: Math.round(avgMargin * 10) / 10, reason: `${memories.length} past decisions se calculate kiya (Phase 3 — Confident)` };
+  } else if (memories.length >= 2) {
+    const avgMargin = memories.reduce((sum, m) => sum + m.margin_given, 0) / memories.length;
+    suggestion = { confidence: 'medium', recommended_margin: Math.round(avgMargin * 10) / 10, reason: `${memories.length} past decisions hai — suggest kar raha hun (Phase 2)` };
+  } else {
+    suggestion = { confidence: 'low', recommended_margin: 0, reason: 'Insufficient data — Owner se poochna padega (Phase 1)' };
+  }
+  
+  const suggestedRate = product.rate * (1 - suggestion.recommended_margin / 100);
+  res.json({
+    vendor_name: vendor?.business_name || 'Unknown',
+    product_name: product.product_name,
+    base_rate: product.rate,
+    suggested_margin: suggestion.recommended_margin,
+    suggested_rate: Math.round(suggestedRate),
+    confidence: suggestion.confidence,
+    reason: suggestion.reason,
+    history_count: memories.length,
+    memories: memories.slice(-5)
+  });
+});
+
+// ============================================================================
+// 9. TASK LIFECYCLE
+// ============================================================================
+router.get('/tasks', authenticateToken, (req, res) => { res.json(b2bTasks); });
+router.post('/tasks', authenticateToken, (req, res) => {
+  const { type, reference_id, title, assigned_to, deadline } = req.body;
+  const newTask = {
+    id: b2bTasks.length + 1, type, reference_id: parseInt(reference_id),
+    title, assigned_to, status: 'Created',
+    proof_url: '', created_at: new Date().toISOString(),
+    deadline: deadline || new Date(Date.now() + 24*60*60*1000).toISOString(),
+    closed_at: null, proof_submitted: false, verified_by: null
+  };
+  b2bTasks.push(newTask);
+  res.status(201).json(newTask);
+});
+router.put('/tasks/:id', authenticateToken, (req, res) => {
+  const task = b2bTasks.find(t => t.id == req.params.id);
+  if (!task) return res.status(404).json({ error: 'Task not found' });
+  const { status, proof_url, verified_by } = req.body;
+  
+  // Rule B1: Cannot close without proof
+  if (status === 'Closed' && !task.proof_submitted && !proof_url) {
+    return res.status(400).json({
+      error: 'Task cannot be closed without proof',
+      rule_violated: 'B1_PROOF_REQUIRED',
+      suggestion: 'Pehle proof (photo/document) submit karo, phir close karo'
+    });
+  }
+  
+  if (status) task.status = status;
+  if (proof_url) { task.proof_url = proof_url; task.proof_submitted = true; }
+  if (verified_by) task.verified_by = verified_by;
+  if (status === 'Closed') task.closed_at = new Date().toISOString();
+  
+  res.json(task);
+});
+
+// ============================================================================
+// 10. CREDIT SCORES
+// ============================================================================
+router.get('/credit-scores', authenticateToken, (req, res) => { res.json(b2bCreditScores); });
+router.get('/credit-scores/:vendor_id', authenticateToken, (req, res) => {
+  const score = b2bCreditScores.find(s => s.vendor_id == req.params.vendor_id);
+  if (!score) return res.status(404).json({ error: 'Credit score not found' });
+  res.json(score);
+});
+
+// ============================================================================
+// 11. DAILY REPORT
+// ============================================================================
+router.get('/daily-report', authenticateToken, (req, res) => {
+  const today = new Date().toISOString().split('T')[0];
+  const todayOrders = b2bOrders.filter(o => o.created_at.startsWith(today));
+  const pendingPayments = b2bInvoices.filter(i => i.status === 'Unpaid');
+  const lowStock = b2bPriceList.filter(p => p.stock_level <= p.reorder_level);
+  const totalRevenue = b2bOrders.filter(o => o.status !== 'Rejected').reduce((sum, o) => sum + o.total_amount, 0);
+  const overdueTasks = b2bTasks.filter(t => t.status !== 'Closed' && new Date(t.deadline) < new Date());
+  
+  res.json({
+    date: today,
+    stock_summary: b2bPriceList.map(p => ({ name: p.product_name, stock: p.stock_level, low: p.stock_level <= p.reorder_level })),
+    low_stock_alerts: lowStock.map(p => ({ name: p.product_name, stock: p.stock_level, reorder: p.reorder_level })),
+    today_orders: { count: todayOrders.length, items: todayOrders },
+    pending_payments: { count: pendingPayments.length, total: pendingPayments.reduce((s, i) => s + i.total_amount, 0), items: pendingPayments },
+    overdue_tasks: { count: overdueTasks.length, items: overdueTasks },
+    total_revenue: totalRevenue,
+    active_clients: b2bClients.filter(c => c.status === 'Active').length,
+    defaulter_clients: b2bClients.filter(c => c.defaulter_status === 'Yes').length
+  });
 });
 
 module.exports = router;

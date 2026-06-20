@@ -94,7 +94,7 @@ export default function B2BDealerModule({ user }) {
   const [selectedOrderForRate, setSelectedOrderForRate] = useState(null);
   const [customRate, setCustomRate] = useState('');
 
-  const isB2BAllowed = user?.designation === 'Owner' || user?.designation === 'B2B Sales' || user?.designation === 'Operations';
+  const isB2BAllowed = user?.designation === 'Owner' || user?.designation === 'B2B Sales' || user?.designation === 'Operations Head';
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -1112,7 +1112,7 @@ export default function B2BDealerModule({ user }) {
       {/* Modal 1: Onboard EPC Client */}
       <Modal isOpen={clientModalOpen} onClose={() => setClientModalOpen(false)} title="Onboard New Dealership Client">
         <form onSubmit={handleCreateClient} className="p-6 space-y-4">
-          <Input label="Business Legal Name" placeholder="e.g. Bhushan Solar Systems (EPC)" value={clientForm.business_name} onChange={e => setClientForm(prev => ({ ...prev, business_name: e.target.value }))} required />
+          <Input label="Business Legal Name" placeholder="e.g. Helius Solar Systems (EPC)" value={clientForm.business_name} onChange={e => setClientForm(prev => ({ ...prev, business_name: e.target.value }))} required />
           <div className="grid grid-cols-2 gap-4">
             <Input label="GSTIN Code" placeholder="08ABCDE1234F1Z5" value={clientForm.gstin} onChange={e => setClientForm(prev => ({ ...prev, gstin: e.target.value }))} required />
             <Select label="State Location" value={clientForm.state} onChange={e => setClientForm(prev => ({ ...prev, state: e.target.value }))} options={[
@@ -1123,7 +1123,7 @@ export default function B2BDealerModule({ user }) {
             ]} />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Contact Person" placeholder="Manoj Bhushan" value={clientForm.contact} onChange={e => setClientForm(prev => ({ ...prev, contact: e.target.value }))} required />
+            <Input label="Contact Person" placeholder="Manoj Kumar" value={clientForm.contact} onChange={e => setClientForm(prev => ({ ...prev, contact: e.target.value }))} required />
             <Input label="Phone Number" placeholder="9876543210" value={clientForm.phone} onChange={e => setClientForm(prev => ({ ...prev, phone: e.target.value }))} required />
           </div>
           <Input label="Credit Limit (₹)" type="number" placeholder="500000" value={clientForm.credit_limit} onChange={e => setClientForm(prev => ({ ...prev, credit_limit: e.target.value }))} />

@@ -9,7 +9,7 @@
     "action_name": "Trigger Inventory Restock Request",
     "webhook_url": "http://localhost:5678/webhook-test/inventory-restock",
     "payload_fields": ["item_code", "quantity_needed", "vendor_email"],
-    "allowed_designations": ["Operations", "Admin"]
+    "allowed_designations": ["Operations Head", "Admin"]
   },
   {
     "action_name": "Send Alert Notification",

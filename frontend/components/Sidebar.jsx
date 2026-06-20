@@ -32,16 +32,16 @@ import {
 } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { id: 'dashboard',       label: 'Dashboard',          icon: LayoutDashboard, roles: ['Owner', 'HR', 'Sales', 'Operations', 'B2B Sales'] },
-  { id: 'crm',             label: 'Leads & Follow-ups', icon: Users,           roles: ['Owner', 'Sales'] },
-  { id: 'b2c_projects',    label: 'B2C Tracker',        icon: Home,            roles: ['Owner', 'Sales', 'Operations'] },
-  { id: 'projects',        label: 'Projects',           icon: FolderKanban,    roles: ['Owner', 'Operations'] },
-  { id: 'b2b',             label: 'B2B Dealer Portal',  icon: Briefcase,       roles: ['Owner', 'B2B Sales'] },
-  { id: 'inventory',       label: 'Inventory',          icon: Package,         roles: ['Owner', 'B2B Sales'] },
+  { id: 'dashboard',       label: 'Dashboard',          icon: LayoutDashboard, roles: ['Owner', 'HR', 'Sales Head', 'Operations Head', 'B2B Sales'] },
+  { id: 'crm',             label: 'Leads & Follow-ups', icon: Users,           roles: ['Owner', 'Sales Head'] },
+  { id: 'b2c_projects',    label: 'B2C Tracker',        icon: Home,            roles: ['Owner', 'Sales Head', 'Operations Head'] },
+  { id: 'projects',        label: 'Projects',           icon: FolderKanban,    roles: ['Owner', 'Operations Head'] },
+  { id: 'b2b',             label: 'B2B Dealer Portal',  icon: Briefcase,       roles: ['Owner', 'B2B Sales', 'Operations Head'] },
+  { id: 'inventory',       label: 'Inventory',          icon: Package,         roles: ['Owner', 'B2B Sales', 'Operations Head'] },
   { id: 'staff',           label: 'HR & Staff Portal',  icon: UserCheck,       roles: ['Owner', 'HR'] },
-  { id: 'employee_portal', label: 'My Staff Portal',    icon: ClipboardList,   roles: ['Owner', 'HR', 'Sales'] },
+  { id: 'employee_portal', label: 'My Staff Portal',    icon: ClipboardList,   roles: ['Owner', 'HR', 'Sales Head'] },
   { id: 'payments',        label: 'Payments',           icon: CreditCard,      roles: ['Owner'] },
-  { id: 'settings',        label: 'Settings',           icon: Settings,        roles: ['Owner', 'HR', 'Sales', 'Operations', 'B2B Sales'] },
+  { id: 'settings',        label: 'Settings',           icon: Settings,        roles: ['Owner', 'HR', 'Sales Head', 'Operations Head', 'B2B Sales'] },
 ];
 
 export default function Sidebar({ activeModule, onModuleChange, user, onLogout }) {
@@ -96,7 +96,7 @@ export default function Sidebar({ activeModule, onModuleChange, user, onLogout }
             <Sun size={22} />
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-sm font-bold text-white tracking-tight truncate">Solar EPC</span>
+            <span className="text-sm font-bold text-white tracking-tight truncate">Helius Solar</span>
             <span className="text-[10px] text-indigo-400 font-medium tracking-wider uppercase">Operations Hub</span>
           </div>
 

@@ -62,6 +62,22 @@ router.post('/leads', authenticateToken, async (req, res) => {
 
     // Trigger n8n webhook (asynchronous background notification)
     if (n8nConfig.workflows && n8nConfig.workflows.new_lead_notification) {
+      let ownerPhone = '917052051010';
+      let botPhone = '6386434561';
+      let wahaApiUrl = 'http://localhost:3000';
+      try {
+        const settingsRes = await db.query(
+          "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('owner_whatsapp_number', 'bot_whatsapp_number', 'waha_api_url')"
+        );
+        settingsRes.rows.forEach(row => {
+          if (row.setting_key === 'owner_whatsapp_number') ownerPhone = row.setting_value;
+          if (row.setting_key === 'bot_whatsapp_number') botPhone = row.setting_value;
+          if (row.setting_key === 'waha_api_url') wahaApiUrl = row.setting_value;
+        });
+      } catch (dbErr) {
+        console.warn('Could not read system settings from db:', dbErr.message);
+      }
+
       triggerWorkflow(n8nConfig.workflows.new_lead_notification.webhook_url, {
         lead_id: newLead.id,
         lead_name: newLead.name,
@@ -69,7 +85,10 @@ router.post('/leads', authenticateToken, async (req, res) => {
         email: newLead.email,
         source: newLead.source,
         kw_capacity: newLead.kw_capacity,
-        ai_score: newLead.ai_score
+        ai_score: newLead.ai_score,
+        owner_phone: ownerPhone,
+        bot_phone: botPhone,
+        waha_api_url: wahaApiUrl
       }).catch(err => console.warn('n8n notification trigger skipped or failed:', err.message));
     }
 
@@ -126,11 +145,30 @@ router.put('/leads/:id', authenticateToken, async (req, res) => {
     // If stage changed, trigger n8n hook
     if (stage && stage !== currentLead.stage) {
       if (n8nConfig.workflows && n8nConfig.workflows.lead_stage_update) {
+        let ownerPhone = '917052051010';
+        let botPhone = '6386434561';
+        let wahaApiUrl = 'http://localhost:3000';
+        try {
+          const settingsRes = await db.query(
+            "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('owner_whatsapp_number', 'bot_whatsapp_number', 'waha_api_url')"
+          );
+          settingsRes.rows.forEach(row => {
+            if (row.setting_key === 'owner_whatsapp_number') ownerPhone = row.setting_value;
+            if (row.setting_key === 'bot_whatsapp_number') botPhone = row.setting_value;
+            if (row.setting_key === 'waha_api_url') wahaApiUrl = row.setting_value;
+          });
+        } catch (dbErr) {
+          console.warn('Could not read system settings from db:', dbErr.message);
+        }
+
         triggerWorkflow(n8nConfig.workflows.lead_stage_update.webhook_url, {
           lead_id: updatedLead.id,
           lead_name: updatedLead.name,
           old_stage: currentLead.stage,
-          new_stage: updatedLead.stage
+          new_stage: updatedLead.stage,
+          owner_phone: ownerPhone,
+          bot_phone: botPhone,
+          waha_api_url: wahaApiUrl
         }).catch(err => console.warn('n8n stage update trigger failed:', err.message));
       }
 

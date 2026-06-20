@@ -82,4 +82,48 @@ router.post('/query', authenticateToken, async (req, res) => {
   }
 });
 
+// GET /api/ai/settings
+router.get('/settings', authenticateToken, async (req, res) => {
+  try {
+    const result = await db.query('SELECT setting_key, setting_value FROM system_settings');
+    const settings = {};
+    result.rows.forEach(row => {
+      settings[row.setting_key] = row.setting_value;
+    });
+    res.json(settings);
+  } catch (error) {
+    console.error('Error fetching AI settings:', error);
+    res.status(500).json({ error: 'Failed to fetch settings' });
+  }
+});
+
+// POST /api/ai/settings
+router.post('/settings', authenticateToken, async (req, res) => {
+  const { key, value } = req.body;
+  if (!key) {
+    return res.status(400).json({ error: 'Setting key is required' });
+  }
+
+  try {
+    // Check if key exists
+    const checkRes = await db.query('SELECT * FROM system_settings WHERE setting_key = $1', [key]);
+    if (checkRes.rows.length === 0) {
+      await db.query('INSERT INTO system_settings (setting_key, setting_value) VALUES ($1, $2)', [key, value || '']);
+    } else {
+      await db.query('UPDATE system_settings SET setting_value = $1, updated_at = NOW() WHERE setting_key = $2', [value || '', key]);
+    }
+
+    // Insert action log into system_logs
+    await db.query(
+      'INSERT INTO system_logs (user_role, action_type, details) VALUES ($1, $2, $3)',
+      [req.user.designation, 'AI Settings Update', `Updated setting ${key} to: "${value || ''}"`]
+    );
+
+    res.json({ success: true, key, value });
+  } catch (error) {
+    console.error('Error updating AI settings:', error);
+    res.status(500).json({ error: 'Failed to update setting' });
+  }
+});
+
 module.exports = router;

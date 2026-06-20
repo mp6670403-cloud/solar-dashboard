@@ -57,6 +57,27 @@
       "description": "Receives lead data from IndiaMART and creates a new lead",
       "trigger": "inbound_webhook",
       "payload_fields": ["name", "phone", "email", "query", "city"]
+    },
+    "b2b_order_placed": {
+      "name": "B2B Order Placed Alert",
+      "webhook_url": "http://localhost:5678/webhook/b2b-order-placed",
+      "description": "Sends WhatsApp alert to dealer confirming purchase order received",
+      "trigger": "order_created",
+      "payload_fields": ["order_id", "client_name", "product_name", "quantity", "total_amount", "phone"]
+    },
+    "b2b_order_confirmed": {
+      "name": "B2B Order Confirmed Alert",
+      "webhook_url": "http://localhost:5678/webhook/b2b-order-confirmed",
+      "description": "Sends WhatsApp alert with invoice details to dealer when owner approves",
+      "trigger": "order_confirmed",
+      "payload_fields": ["order_id", "client_name", "invoice_no", "total_amount", "phone"]
+    },
+    "b2b_order_dispatched": {
+      "name": "B2B Material Dispatched Alert",
+      "webhook_url": "http://localhost:5678/webhook/b2b-order-dispatched",
+      "description": "Sends WhatsApp alert with carrier tracking link and E-way bill to dealer",
+      "trigger": "order_dispatched",
+      "payload_fields": ["order_id", "client_name", "logistics_partner", "tracking_no", "e_way_bill", "tracking_url", "phone"]
     }
   }
 }
