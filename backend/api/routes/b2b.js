@@ -251,14 +251,16 @@ router.post('/orders',
     let ownerPhone = '917052051010';
     let botPhone = '6386434561';
     let wahaApiUrl = 'http://localhost:3000';
+    let wahaApiKey = '';
     try {
       const settingsRes = await db.query(
-        "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('owner_whatsapp_number', 'bot_whatsapp_number', 'waha_api_url')"
+        "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('owner_whatsapp_number', 'bot_whatsapp_number', 'waha_api_url', 'waha_api_key')"
       );
       settingsRes.rows.forEach(row => {
         if (row.setting_key === 'owner_whatsapp_number') ownerPhone = row.setting_value;
         if (row.setting_key === 'bot_whatsapp_number') botPhone = row.setting_value;
         if (row.setting_key === 'waha_api_url') wahaApiUrl = row.setting_value;
+        if (row.setting_key === 'waha_api_key') wahaApiKey = row.setting_value;
       });
     } catch (dbErr) {
       console.warn('Could not read system settings from db:', dbErr.message);
@@ -273,7 +275,8 @@ router.post('/orders',
       phone: client.phone,
       owner_phone: ownerPhone,
       bot_phone: botPhone,
-      waha_api_url: wahaApiUrl
+      waha_api_url: wahaApiUrl,
+      waha_api_key: wahaApiKey
     }).catch(err => console.warn('n8n B2B order alert failed:', err.message));
   }
 
@@ -357,14 +360,16 @@ router.put('/orders/:id', authenticateToken, async (req, res) => {
         let ownerPhone = '917052051010';
         let botPhone = '6386434561';
         let wahaApiUrl = 'http://localhost:3000';
+        let wahaApiKey = '';
         try {
           const settingsRes = await db.query(
-            "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('owner_whatsapp_number', 'bot_whatsapp_number', 'waha_api_url')"
+            "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('owner_whatsapp_number', 'bot_whatsapp_number', 'waha_api_url', 'waha_api_key')"
           );
           settingsRes.rows.forEach(row => {
             if (row.setting_key === 'owner_whatsapp_number') ownerPhone = row.setting_value;
             if (row.setting_key === 'bot_whatsapp_number') botPhone = row.setting_value;
             if (row.setting_key === 'waha_api_url') wahaApiUrl = row.setting_value;
+            if (row.setting_key === 'waha_api_key') wahaApiKey = row.setting_value;
           });
         } catch (dbErr) {
           console.warn('Could not read system settings from db:', dbErr.message);
@@ -378,7 +383,8 @@ router.put('/orders/:id', authenticateToken, async (req, res) => {
           phone: client ? client.phone : '',
           owner_phone: ownerPhone,
           bot_phone: botPhone,
-          waha_api_url: wahaApiUrl
+          waha_api_url: wahaApiUrl,
+          waha_api_key: wahaApiKey
         }).catch(err => console.warn('n8n B2B confirmed alert failed:', err.message));
       }
     }
@@ -392,14 +398,16 @@ router.put('/orders/:id', authenticateToken, async (req, res) => {
         let ownerPhone = '917052051010';
         let botPhone = '6386434561';
         let wahaApiUrl = 'http://localhost:3000';
+        let wahaApiKey = '';
         try {
           const settingsRes = await db.query(
-            "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('owner_whatsapp_number', 'bot_whatsapp_number', 'waha_api_url')"
+            "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('owner_whatsapp_number', 'bot_whatsapp_number', 'waha_api_url', 'waha_api_key')"
           );
           settingsRes.rows.forEach(row => {
             if (row.setting_key === 'owner_whatsapp_number') ownerPhone = row.setting_value;
             if (row.setting_key === 'bot_whatsapp_number') botPhone = row.setting_value;
             if (row.setting_key === 'waha_api_url') wahaApiUrl = row.setting_value;
+            if (row.setting_key === 'waha_api_key') wahaApiKey = row.setting_value;
           });
         } catch (dbErr) {
           console.warn('Could not read system settings from db:', dbErr.message);
@@ -415,7 +423,8 @@ router.put('/orders/:id', authenticateToken, async (req, res) => {
           phone: client ? client.phone : '',
           owner_phone: ownerPhone,
           bot_phone: botPhone,
-          waha_api_url: wahaApiUrl
+          waha_api_url: wahaApiUrl,
+          waha_api_key: wahaApiKey
         }).catch(err => console.warn('n8n B2B dispatch alert failed:', err.message));
       }
       const messageText = `Dear ${client?.business_name || 'Customer'}, your B2B order #${order.id} has been dispatched. Track live: ${trackingUrl}`;

@@ -20,13 +20,15 @@ async function sendWhatsApp(to, content, type = 'text') {
   // Fetch settings dynamically from system_settings
   let wahaApiUrl = 'http://localhost:3000';
   let botNumber = '6386434561';
+  let wahaApiKey = '';
   try {
     const settingsRes = await db.query(
-      "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('waha_api_url', 'bot_whatsapp_number')"
+      "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('waha_api_url', 'bot_whatsapp_number', 'waha_api_key')"
     );
     settingsRes.rows.forEach(row => {
       if (row.setting_key === 'waha_api_url') wahaApiUrl = row.setting_value;
       if (row.setting_key === 'bot_whatsapp_number') botNumber = row.setting_value;
+      if (row.setting_key === 'waha_api_key') wahaApiKey = row.setting_value;
     });
   } catch (err) {
     console.warn('[WhatsApp Integration] Error reading settings from database, using defaults:', err.message);
@@ -44,12 +46,17 @@ async function sendWhatsApp(to, content, type = 'text') {
       session: 'default'
     };
 
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+    if (wahaApiKey) {
+      headers['x-api-key'] = wahaApiKey;
+    }
+
     console.log(`[WhatsApp Waha API] Sending message via Waha (${url}) to +${cleanNumber} using bot session for number ${botNumber}...`);
     
     const response = await axios.post(url, payload, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers,
       timeout: 5000 // 5 seconds timeout
     });
 

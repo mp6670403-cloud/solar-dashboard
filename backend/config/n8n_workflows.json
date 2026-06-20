@@ -1,0 +1,386 @@
+[
+  {
+    "name": "Helius Solar — WhatsApp Lead Auto-Import",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "whatsapp-incoming",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [250, 300],
+        "id": "wh-lead-trigger",
+        "name": "WhatsApp Message Received"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://52.63.104.242.sslip.io/api/workflows/webhook/whatsapp",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              { "name": "Content-Type", "value": "application/json" }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "json",
+          "bodyParameters": {
+            "parameters": [
+              { "name": "sender_name", "value": "={{ $json.body.sender_name || $json.body._data?.notifyName || 'WhatsApp Contact' }}" },
+              { "name": "sender_phone", "value": "={{ $json.body.sender_phone || $json.body.from || '' }}" },
+              { "name": "message_text", "value": "={{ $json.body.message_text || $json.body.text || $json.body.body || '' }}" }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [500, 300],
+        "id": "http-crm-lead",
+        "name": "Send to Helius CRM"
+      }
+    ],
+    "connections": {
+      "WhatsApp Message Received": {
+        "main": [
+          [{ "node": "Send to Helius CRM", "type": "main", "index": 0 }]
+        ]
+      }
+    },
+    "active": false,
+    "settings": {},
+    "id": "wf-lead-import"
+  },
+  {
+    "name": "Helius Solar — New Lead Alert to Owner",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "new-lead-notification",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [250, 300],
+        "id": "wh-new-lead",
+        "name": "New Lead Webhook"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "={{ $json.body.waha_api_url || 'http://localhost:3000' }}/api/sendText",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "x-api-key", "value": "={{ $json.body.waha_api_key || '' }}" }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "json",
+          "bodyParameters": {
+            "parameters": [
+              { "name": "chatId", "value": "={{ $json.body.owner_phone }}@c.us" },
+              { "name": "text", "value": "🔔 *NEW LEAD ALERT*\n\nName: {{ $json.body.lead_name }}\nPhone: {{ $json.body.phone }}\nSource: {{ $json.body.source }}\nkW: {{ $json.body.kw_capacity }}\nAI Score: {{ $json.body.ai_score }}/100\n\nDashboard: https://52.63.104.242.sslip.io" },
+              { "name": "session", "value": "default" }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [500, 300],
+        "id": "http-owner-alert",
+        "name": "Send Owner WhatsApp Alert"
+      }
+    ],
+    "connections": {
+      "New Lead Webhook": {
+        "main": [
+          [{ "node": "Send Owner WhatsApp Alert", "type": "main", "index": 0 }]
+        ]
+      }
+    },
+    "active": false,
+    "settings": {},
+    "id": "wf-new-lead-alert"
+  },
+  {
+    "name": "Helius Solar — Lead Stage Update Alert",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "lead-stage-update",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [250, 300],
+        "id": "wh-stage-update",
+        "name": "Stage Update Webhook"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "={{ $json.body.waha_api_url || 'http://localhost:3000' }}/api/sendText",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "x-api-key", "value": "={{ $json.body.waha_api_key || '' }}" }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "json",
+          "bodyParameters": {
+            "parameters": [
+              { "name": "chatId", "value": "={{ $json.body.owner_phone }}@c.us" },
+              { "name": "text", "value": "📋 *LEAD STAGE CHANGED*\n\nLead: {{ $json.body.lead_name }}\n{{ $json.body.old_stage }} ➜ {{ $json.body.new_stage }}\n\nDashboard: https://52.63.104.242.sslip.io" },
+              { "name": "session", "value": "default" }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [500, 300],
+        "id": "http-stage-alert",
+        "name": "Send Stage Alert via Waha"
+      }
+    ],
+    "connections": {
+      "Stage Update Webhook": {
+        "main": [
+          [{ "node": "Send Stage Alert via Waha", "type": "main", "index": 0 }]
+        ]
+      }
+    },
+    "active": false,
+    "settings": {},
+    "id": "wf-stage-update"
+  },
+  {
+    "name": "Helius Solar — B2B Order Placed Alert",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "b2b-order-placed",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [250, 300],
+        "id": "wh-b2b-placed",
+        "name": "B2B Order Placed Webhook"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "={{ $json.body.waha_api_url || 'http://localhost:3000' }}/api/sendText",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "x-api-key", "value": "={{ $json.body.waha_api_key || '' }}" }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "json",
+          "bodyParameters": {
+            "parameters": [
+              { "name": "chatId", "value": "={{ $json.body.owner_phone }}@c.us" },
+              { "name": "text", "value": "🛒 *NEW B2B ORDER*\n\nOrder #{{ $json.body.order_id }}\nClient: {{ $json.body.client_name }}\nProduct: {{ $json.body.product_name }}\nQty: {{ $json.body.quantity }}\nAmount: ₹{{ $json.body.total_amount }}\n\n⚠️ Approval Required!\nDashboard: https://52.63.104.242.sslip.io" },
+              { "name": "session", "value": "default" }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [500, 300],
+        "id": "http-b2b-placed-alert",
+        "name": "Alert Owner — New B2B Order"
+      }
+    ],
+    "connections": {
+      "B2B Order Placed Webhook": {
+        "main": [
+          [{ "node": "Alert Owner — New B2B Order", "type": "main", "index": 0 }]
+        ]
+      }
+    },
+    "active": false,
+    "settings": {},
+    "id": "wf-b2b-placed"
+  },
+  {
+    "name": "Helius Solar — B2B Order Confirmed Alert",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "b2b-order-confirmed",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [250, 300],
+        "id": "wh-b2b-confirmed",
+        "name": "B2B Confirmed Webhook"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "={{ $json.body.waha_api_url || 'http://localhost:3000' }}/api/sendText",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "x-api-key", "value": "={{ $json.body.waha_api_key || '' }}" }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "json",
+          "bodyParameters": {
+            "parameters": [
+              { "name": "chatId", "value": "={{ $json.body.phone }}@c.us" },
+              { "name": "text", "value": "✅ *ORDER CONFIRMED*\n\nOrder #{{ $json.body.order_id }}\nInvoice: {{ $json.body.invoice_no }}\nTotal: ₹{{ $json.body.total_amount }}\n\nThank you, {{ $json.body.client_name }}!\nTrack: https://52.63.104.242.sslip.io/track?orderId={{ $json.body.order_id }}" },
+              { "name": "session", "value": "default" }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [500, 300],
+        "id": "http-b2b-confirmed-alert",
+        "name": "Send Dealer Confirmation via Waha"
+      }
+    ],
+    "connections": {
+      "B2B Confirmed Webhook": {
+        "main": [
+          [{ "node": "Send Dealer Confirmation via Waha", "type": "main", "index": 0 }]
+        ]
+      }
+    },
+    "active": false,
+    "settings": {},
+    "id": "wf-b2b-confirmed"
+  },
+  {
+    "name": "Helius Solar — B2B Dispatch Alert",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "b2b-order-dispatched",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [250, 300],
+        "id": "wh-b2b-dispatched",
+        "name": "B2B Dispatch Webhook"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "={{ $json.body.waha_api_url || 'http://localhost:3000' }}/api/sendText",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "x-api-key", "value": "={{ $json.body.waha_api_key || '' }}" }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "json",
+          "bodyParameters": {
+            "parameters": [
+              { "name": "chatId", "value": "={{ $json.body.phone }}@c.us" },
+              { "name": "text", "value": "🚚 *MATERIAL DISPATCHED*\n\nOrder #{{ $json.body.order_id }}\nClient: {{ $json.body.client_name }}\nLogistics: {{ $json.body.logistics_partner }}\nTracking: {{ $json.body.tracking_no }}\nE-Way: {{ $json.body.e_way_bill }}\n\nTrack Live: {{ $json.body.tracking_url }}" },
+              { "name": "session", "value": "default" }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [500, 300],
+        "id": "http-b2b-dispatch-alert",
+        "name": "Send Dealer Dispatch Alert via Waha"
+      }
+    ],
+    "connections": {
+      "B2B Dispatch Webhook": {
+        "main": [
+          [{ "node": "Send Dealer Dispatch Alert via Waha", "type": "main", "index": 0 }]
+        ]
+      }
+    },
+    "active": false,
+    "settings": {},
+    "id": "wf-b2b-dispatched"
+  },
+  {
+    "name": "Helius Solar — Payment Reminder",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "payment-reminder",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [250, 300],
+        "id": "wh-payment-reminder",
+        "name": "Payment Reminder Webhook"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "={{ $json.body.waha_api_url || 'http://localhost:3000' }}/api/sendText",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "x-api-key", "value": "={{ $json.body.waha_api_key || '' }}" }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "json",
+          "bodyParameters": {
+            "parameters": [
+              { "name": "chatId", "value": "={{ $json.body.customer_phone }}@c.us" },
+              { "name": "text", "value": "💰 *PAYMENT REMINDER*\n\nDear {{ $json.body.customer_name }},\n\nYour payment of ₹{{ $json.body.amount }} for project \"{{ $json.body.project_name }}\" is due on {{ $json.body.due_date }}.\n\nPlease clear the dues at the earliest.\n\n— Helius Solar" },
+              { "name": "session", "value": "default" }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [500, 300],
+        "id": "http-payment-reminder",
+        "name": "Send Payment Reminder via Waha"
+      }
+    ],
+    "connections": {
+      "Payment Reminder Webhook": {
+        "main": [
+          [{ "node": "Send Payment Reminder via Waha", "type": "main", "index": 0 }]
+        ]
+      }
+    },
+    "active": false,
+    "settings": {},
+    "id": "wf-payment-reminder"
+  }
+]

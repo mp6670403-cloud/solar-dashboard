@@ -29,7 +29,8 @@ export default function Home() {
     sales_strategy: '',
     bot_whatsapp_number: '',
     owner_whatsapp_number: '',
-    waha_api_url: ''
+    waha_api_url: '',
+    waha_api_key: ''
   });
   const [savingSettings, setSavingSettings] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
@@ -94,7 +95,8 @@ export default function Home() {
             sales_strategy: data.sales_strategy || '',
             bot_whatsapp_number: data.bot_whatsapp_number || '6386434561',
             owner_whatsapp_number: data.owner_whatsapp_number || '917052051010',
-            waha_api_url: data.waha_api_url || 'http://localhost:3000'
+            waha_api_url: data.waha_api_url || 'http://localhost:3000',
+            waha_api_key: data.waha_api_key || ''
           });
         } catch (err) {
           console.error('Failed to load AI settings:', err);
@@ -133,6 +135,10 @@ export default function Home() {
       await apiCall('/ai/settings', {
         method: 'POST',
         body: JSON.stringify({ key: 'waha_api_url', value: aiSettings.waha_api_url })
+      });
+      await apiCall('/ai/settings', {
+        method: 'POST',
+        body: JSON.stringify({ key: 'waha_api_key', value: aiSettings.waha_api_key })
       });
       setSaveStatus('All AI settings saved successfully!');
       setTimeout(() => setSaveStatus(''), 3000);
@@ -313,7 +319,7 @@ export default function Home() {
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-slate-800/80 pt-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-800/80 pt-4">
                           <div className="space-y-1.5">
                             <label className="text-slate-300 font-semibold block">
                               Bot WhatsApp Number (Waha Instance)
@@ -359,6 +365,22 @@ export default function Home() {
                             />
                             <span className="text-[10px] text-slate-500 block">
                               Endpoint URL where your WAHA service is hosted.
+                            </span>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-slate-300 font-semibold block">
+                              Waha API Key (Security Token)
+                            </label>
+                            <input
+                              type="password"
+                              value={aiSettings.waha_api_key}
+                              onChange={(e) => setAiSettings({ ...aiSettings, waha_api_key: e.target.value })}
+                              placeholder="Optional - Enter Waha API Key if configured"
+                              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 font-mono text-[11px]"
+                            />
+                            <span className="text-[10px] text-slate-500 block">
+                              API Key token to authenticate with the WAHA server.
                             </span>
                           </div>
                         </div>

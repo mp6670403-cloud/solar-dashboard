@@ -278,7 +278,8 @@ const seedMockDb = async () => {
     { setting_key: 'sales_strategy', setting_value: 'Focus on central subsidy of ₹78,000.' },
     { setting_key: 'bot_whatsapp_number', setting_value: '6386434561' },
     { setting_key: 'owner_whatsapp_number', setting_value: '917052051010' },
-    { setting_key: 'waha_api_url', setting_value: 'http://localhost:3000' }
+    { setting_key: 'waha_api_url', setting_value: 'http://localhost:3000' },
+    { setting_key: 'waha_api_key', setting_value: '' }
   ];
 
   console.log('[Mock DB] Mock database seeded successfully with Solar EPC data.');
@@ -1062,7 +1063,8 @@ const initializeDatabase = async () => {
           ('sales_strategy', 'Focus on central subsidy of ₹78,000.'),
           ('bot_whatsapp_number', '6386434561'),
           ('owner_whatsapp_number', '917052051010'),
-          ('waha_api_url', 'http://localhost:3000');
+          ('waha_api_url', 'http://localhost:3000'),
+          ('waha_api_key', '');
         `);
       }
 

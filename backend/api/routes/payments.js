@@ -84,14 +84,16 @@ router.post('/:id/reminder', authenticateToken, async (req, res) => {
       let ownerPhone = '917052051010';
       let botPhone = '6386434561';
       let wahaApiUrl = 'http://localhost:3000';
+      let wahaApiKey = '';
       try {
         const settingsRes = await db.query(
-          "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('owner_whatsapp_number', 'bot_whatsapp_number', 'waha_api_url')"
+          "SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('owner_whatsapp_number', 'bot_whatsapp_number', 'waha_api_url', 'waha_api_key')"
         );
         settingsRes.rows.forEach(row => {
           if (row.setting_key === 'owner_whatsapp_number') ownerPhone = row.setting_value;
           if (row.setting_key === 'bot_whatsapp_number') botPhone = row.setting_value;
           if (row.setting_key === 'waha_api_url') wahaApiUrl = row.setting_value;
+          if (row.setting_key === 'waha_api_key') wahaApiKey = row.setting_value;
         });
       } catch (dbErr) {
         console.warn('Could not read system settings from db:', dbErr.message);
@@ -108,7 +110,8 @@ router.post('/:id/reminder', authenticateToken, async (req, res) => {
         payment_stage: payment.payment_stage,
         owner_phone: ownerPhone,
         bot_phone: botPhone,
-        waha_api_url: wahaApiUrl
+        waha_api_url: wahaApiUrl,
+        waha_api_key: wahaApiKey
       });
     }
 
