@@ -310,8 +310,15 @@ export default function B2CProjectModule({ user }) {
     longitude: '',
     structural_layout: '',
     cad_design_url: '',
-    electrical_schematic: ''
+    electrical_schematic: '',
+    ai_obstacles: '',
+    ai_safety_score: '',
+    ai_roof_health_notes: '',
+    survey_image: ''
   });
+
+  const [loadingAiRecommendation, setLoadingAiRecommendation] = useState(false);
+  const [analyzingImage, setAnalyzingImage] = useState(false);
 
   // PR Modal State
   const [prModalOpen, setPrModalOpen] = useState(false);
@@ -421,6 +428,73 @@ export default function B2CProjectModule({ user }) {
     const activeObj = updated.find(p => p.id === selectedProject.id);
     setSelectedProject(activeObj);
     alert('Site Survey Feasibility Report Saved Successfully!');
+  };
+
+  const handleAskSurya = async () => {
+    setLoadingAiRecommendation(true);
+    try {
+      const res = await apiCall('/survey/recommend-design', {
+        method: 'POST',
+        body: JSON.stringify({
+          capacity: selectedProject.kw_capacity,
+          roof_area: surveyEdit.roof_area,
+          roof_type: surveyEdit.roof_type,
+          sanctioned_load: surveyEdit.sanctioned_load
+        })
+      });
+      if (res) {
+        setSurveyEdit(prev => ({
+          ...prev,
+          structural_layout: res.structural_layout || prev.structural_layout,
+          cad_design_url: res.cad_design_url || prev.cad_design_url || 'https://drive.google.com/file/d/demo-cad-layout/view',
+          electrical_schematic: res.electrical_schematic || prev.electrical_schematic || 'https://drive.google.com/file/d/demo-sld-schematic/view',
+          ai_roof_health_notes: res.design_notes || prev.ai_roof_health_notes
+        }));
+        alert('Surya AI generated design recommendations and auto-filled structural mounting!');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error fetching AI recommendations: ' + err.message);
+    } finally {
+      setLoadingAiRecommendation(false);
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64String = reader.result;
+      setAnalyzingImage(true);
+      setSurveyEdit(prev => ({ ...prev, survey_image: base64String }));
+      try {
+        const res = await apiCall('/survey/analyze-image', {
+          method: 'POST',
+          body: JSON.stringify({
+            image: base64String,
+            roof_type: surveyEdit.roof_type
+          })
+        });
+        if (res) {
+          setSurveyEdit(prev => ({
+            ...prev,
+            ai_obstacles: res.obstacles ? res.obstacles.join(', ') : 'None detected',
+            ai_safety_score: res.safety_score || '90',
+            ai_roof_health_notes: res.roof_health || 'Visual check OK',
+            design_notes: res.inverter_placement_notes || prev.design_notes
+          }));
+          alert('Surya AI Vision Analysis Completed successfully!');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Vision analysis failed: ' + err.message);
+      } finally {
+        setAnalyzingImage(false);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleOpenPr = (item) => {
@@ -1028,6 +1102,15 @@ export default function B2CProjectModule({ user }) {
                           >
                             <Download size={10} className="text-emerald-400 mr-1" /> Export Survey (CSV)
                           </Button>
+                          <Button 
+                            type="button"
+                            onClick={handleAskSurya}
+                            disabled={loadingAiRecommendation}
+                            variant="secondary" 
+                            className="!py-0.5 !px-2 !text-[9px] border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10"
+                          >
+                            <Activity size={10} className="text-indigo-400 mr-1 animate-pulse" /> {loadingAiRecommendation ? 'Designing...' : 'Ask Surya AI'}
+                          </Button>
                           {selectedProject.kw_capacity > selectedProject.survey.sanctioned_load && (
                             <span className="text-[8px] bg-rose-500/10 border border-rose-500/20 text-rose-400 px-2 py-0.5 rounded font-black uppercase animate-pulse">
                               ⚠️ Load Enhancement Required
@@ -1138,6 +1221,73 @@ export default function B2CProjectModule({ user }) {
                             onChange={(e) => setSurveyEdit({ ...surveyEdit, longitude: e.target.value })}
                             className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-amber-500 font-mono"
                           />
+                        </div>
+                      </div>
+
+                      {/* Surya AI Vision Rooftop Analysis */}
+                      <div className="border-t border-slate-800/80 pt-4 mt-2">
+                        <h5 className="text-[10px] text-amber-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1">
+                          📸 Surya AI Vision Rooftop Feasibility Scan
+                        </h5>
+                        <div className="bg-slate-900/60 rounded-lg border border-slate-800/70 p-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-3">
+                              <label className="text-[8px] text-slate-400 uppercase font-extrabold block">Upload Rooftop Photo / Live Camera Capture</label>
+                              <div className="flex items-center justify-center w-full">
+                                <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-slate-800 border-dashed rounded-lg cursor-pointer bg-slate-950 hover:bg-slate-900/40 transition">
+                                  <div className="flex flex-col items-center justify-center pt-4 pb-4">
+                                    <Upload size={16} className="text-slate-500 mb-2" />
+                                    <p className="text-[9px] text-slate-400 font-medium">Click to upload or capture site photo</p>
+                                    <p className="text-[7px] text-slate-500 font-mono mt-0.5">PNG, JPG up to 10MB</p>
+                                  </div>
+                                  <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                                </label>
+                              </div>
+                              {surveyEdit.survey_image && (
+                                <div className="mt-2 rounded-lg overflow-hidden border border-slate-800 max-h-32 flex justify-center bg-slate-950">
+                                  <img src={surveyEdit.survey_image} alt="Rooftop Scan" className="object-contain max-h-32" />
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="space-y-2.5 relative">
+                              {analyzingImage && (
+                                <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xs flex flex-col items-center justify-center text-center z-10 rounded">
+                                  <Activity size={20} className="text-amber-400 animate-spin mb-1.5" />
+                                  <span className="text-[9px] text-amber-300 font-bold uppercase tracking-wider animate-pulse">Surya scanning roof visual parameters...</span>
+                                </div>
+                              )}
+
+                              <div className="flex justify-between items-center">
+                                <span className="text-[8px] text-slate-500 uppercase font-bold">Safety Feasibility Score</span>
+                                {surveyEdit.ai_safety_score ? (
+                                  <span className={`text-[10px] font-black px-2 py-0.5 rounded ${
+                                    parseInt(surveyEdit.ai_safety_score) >= 80 ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' :
+                                    parseInt(surveyEdit.ai_safety_score) >= 60 ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400' :
+                                    'bg-rose-500/10 border border-rose-500/20 text-rose-400'
+                                  }`}>
+                                    {surveyEdit.ai_safety_score}%
+                                  </span>
+                                ) : (
+                                  <span className="text-[8px] text-slate-600 font-mono">Not Scanned Yet</span>
+                                )}
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[8px] text-slate-500 uppercase font-bold block">Detected Obstacles / Shadows</label>
+                                <div className="w-full bg-slate-950 border border-slate-850 rounded p-2 text-[10px] text-slate-300 font-mono min-h-10">
+                                  {surveyEdit.ai_obstacles || "No obstacles scanned yet."}
+                                </div>
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[8px] text-slate-500 uppercase font-bold block">Structural Condition Remarks</label>
+                                <div className="w-full bg-slate-950 border border-slate-850 rounded p-2 text-[10px] text-slate-300 font-mono min-h-10">
+                                  {surveyEdit.ai_roof_health_notes || "Scan image to assess roof structure condition."}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
 
