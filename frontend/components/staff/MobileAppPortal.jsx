@@ -574,56 +574,52 @@ export default function MobileAppPortal({ user: globalUser }) {
             {activeTab === 'survey' && (
               <div className="space-y-4">
                 {/* 1. Mandatory Safety Checklist */}
-                {!safetyCleared ? (
-                  <form onSubmit={handleSafetySubmit} className="bg-slate-900/60 border border-slate-850 rounded-2xl p-4 space-y-4 shadow-xl">
-                    <h5 className="text-[11px] text-amber-400 font-extrabold uppercase tracking-wide flex items-center gap-1.5 border-b border-slate-800 pb-2">
-                      ⚠️ Pre-Work Safety SOP Audit
+                <div className="bg-slate-900/60 border border-slate-850 rounded-2xl p-4 space-y-3 shadow-xl">
+                  <h5 className="text-[11px] text-amber-400 font-extrabold uppercase tracking-wide flex items-center gap-1.5 border-b border-slate-800 pb-2">
+                    ⚠️ Pre-Work Safety SOP Audit
+                  </h5>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3 text-xs font-medium cursor-pointer bg-slate-950/40 border border-slate-850 rounded-xl p-2 hover:border-slate-800 transition">
+                      <input
+                        type="checkbox"
+                        checked={safetyChecks.helmet}
+                        onChange={(e) => setSafetyChecks(prev => ({ ...prev, helmet: e.target.checked }))}
+                        className="rounded border-slate-850 bg-slate-950 text-indigo-600 focus:ring-0 focus:ring-offset-0"
+                      />
+                      Wearing Hard Safety Helmet
+                    </label>
+                    <label className="flex items-center gap-3 text-xs font-medium cursor-pointer bg-slate-950/40 border border-slate-850 rounded-xl p-2 hover:border-slate-800 transition">
+                      <input
+                        type="checkbox"
+                        checked={safetyChecks.harness}
+                        onChange={(e) => setSafetyChecks(prev => ({ ...prev, harness: e.target.checked }))}
+                        className="rounded border-slate-850 bg-slate-950 text-indigo-600 focus:ring-0 focus:ring-offset-0"
+                      />
+                      Safety Harness Secured (Roof Anchor)
+                    </label>
+                    <label className="flex items-center gap-3 text-xs font-medium cursor-pointer bg-slate-950/40 border border-slate-850 rounded-xl p-2 hover:border-slate-800 transition">
+                      <input
+                        type="checkbox"
+                        checked={safetyChecks.boots}
+                        onChange={(e) => setSafetyChecks(prev => ({ ...prev, boots: e.target.checked }))}
+                        className="rounded border-slate-850 bg-slate-950 text-indigo-600 focus:ring-0 focus:ring-offset-0"
+                      />
+                      Insulated Grip Safety Shoes Worn
+                    </label>
+                  </div>
+
+                  <div className="border border-dashed border-slate-800 rounded-xl p-3 bg-slate-950 text-center cursor-pointer hover:bg-slate-900/50 transition">
+                    <Camera size={16} className="mx-auto text-slate-500 mb-1" />
+                    <span className="text-[9px] text-slate-400 block font-medium">Capture/Upload Safety Selfie</span>
+                  </div>
+                </div>
+
+                {/* 2. Site Survey Feasibility & Design Form */}
+                <form onSubmit={(e) => { e.preventDefault(); alert('Site feasibility synced to manager!'); }} className="bg-slate-900/60 border border-slate-850 rounded-2xl p-4 space-y-4 shadow-xl">
+                  <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                    <h5 className="text-[11px] text-indigo-400 font-extrabold uppercase tracking-wide">
+                      📝 Feasibility & Measurements
                     </h5>
-                    <div className="space-y-3">
-                      <label className="flex items-center gap-3 text-xs font-medium cursor-pointer bg-slate-950/40 border border-slate-850 rounded-xl p-2.5 hover:border-slate-800 transition">
-                        <input
-                          type="checkbox"
-                          checked={safetyChecks.helmet}
-                          onChange={(e) => setSafetyChecks(prev => ({ ...prev, helmet: e.target.checked }))}
-                          className="rounded border-slate-850 bg-slate-950 text-indigo-600 focus:ring-0 focus:ring-offset-0"
-                        />
-                        Wearing Hard Safety Helmet
-                      </label>
-                      <label className="flex items-center gap-3 text-xs font-medium cursor-pointer bg-slate-950/40 border border-slate-850 rounded-xl p-2.5 hover:border-slate-800 transition">
-                        <input
-                          type="checkbox"
-                          checked={safetyChecks.harness}
-                          onChange={(e) => setSafetyChecks(prev => ({ ...prev, harness: e.target.checked }))}
-                          className="rounded border-slate-850 bg-slate-950 text-indigo-600 focus:ring-0 focus:ring-offset-0"
-                        />
-                        Safety Harness Secured (Roof Anchor)
-                      </label>
-                      <label className="flex items-center gap-3 text-xs font-medium cursor-pointer bg-slate-950/40 border border-slate-850 rounded-xl p-2.5 hover:border-slate-800 transition">
-                        <input
-                          type="checkbox"
-                          checked={safetyChecks.boots}
-                          onChange={(e) => setSafetyChecks(prev => ({ ...prev, boots: e.target.checked }))}
-                          className="rounded border-slate-850 bg-slate-950 text-indigo-600 focus:ring-0 focus:ring-offset-0"
-                        />
-                        Insulated Grip Safety Shoes Worn
-                      </label>
-                    </div>
-
-                    <div className="border border-dashed border-slate-800 rounded-2xl p-4 bg-slate-950 text-center cursor-pointer hover:bg-slate-900/50 transition">
-                      <Camera size={20} className="mx-auto text-slate-500 mb-1.5" />
-                      <span className="text-[9px] text-slate-400 block font-medium">Snap Safety Gear Selfie</span>
-                    </div>
-
-                    <Button type="submit" variant="secondary" className="w-full !py-2.5 rounded-xl border-amber-500/20 text-amber-400 hover:bg-amber-500/10 text-xs font-bold uppercase tracking-wider">
-                      Verify & Unlock Survey
-                    </Button>
-                  </form>
-                ) : (
-                  <form onSubmit={(e) => { e.preventDefault(); alert('Site feasibility synced to manager!'); }} className="bg-slate-900/60 border border-slate-850 rounded-2xl p-4 space-y-4 shadow-xl">
-                    <div className="flex justify-between items-center border-b border-slate-800 pb-2">
-                      <h5 className="text-[11px] text-indigo-400 font-extrabold uppercase tracking-wide">
-                        📝 Feasibility & Measurements
-                      </h5>
                       <span className="text-[8px] bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 px-2 py-0.5 rounded uppercase font-black font-mono">
                         Safety Checked
                       </span>
@@ -715,7 +711,6 @@ export default function MobileAppPortal({ user: globalUser }) {
                       </Button>
                     </div>
                   </form>
-                )}
               </div>
             )}
 
