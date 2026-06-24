@@ -307,7 +307,10 @@ export default function B2CProjectModule({ user }) {
     meter_no: '',
     cable_length: 0,
     latitude: '',
-    longitude: ''
+    longitude: '',
+    structural_layout: '',
+    cad_design_url: '',
+    electrical_schematic: ''
   });
 
   // PR Modal State
@@ -1005,6 +1008,9 @@ export default function B2CProjectModule({ user }) {
                                 ['Meter No', s.meter_no],
                                 ['Cable Length (m)', s.cable_length],
                                 ['GPS Coordinates', `${s.latitude}, ${s.longitude}`],
+                                ['Structural Layout', s.structural_layout || 'N/A'],
+                                ['CAD Design Link', s.cad_design_url || 'N/A'],
+                                ['SLD Schematic Link', s.electrical_schematic || 'N/A'],
                                 ['Survey Status', s.status]
                               ];
                               const csvContent = "data:text/csv;charset=utf-8," 
@@ -1132,6 +1138,52 @@ export default function B2CProjectModule({ user }) {
                             onChange={(e) => setSurveyEdit({ ...surveyEdit, longitude: e.target.value })}
                             className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-amber-500 font-mono"
                           />
+                        </div>
+                      </div>
+
+                      {/* Engineering Layout & Structural Design */}
+                      <div className="border-t border-slate-800/80 pt-4 mt-2">
+                        <h5 className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider mb-3">
+                          Engineering Layout & Structural Design
+                        </h5>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="space-y-1.5">
+                            <label className="text-[8px] text-slate-500 uppercase font-bold">Structural Layout Mounting</label>
+                            <select 
+                              value={surveyEdit.structural_layout || ''}
+                              onChange={(e) => setSurveyEdit({ ...surveyEdit, structural_layout: e.target.value })}
+                              className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                            >
+                              <option value="">Not Selected</option>
+                              <option value="2P Portrait Standard GI">2P Portrait Standard GI</option>
+                              <option value="4H Landscape Tin Clamps">4H Landscape Tin Clamps</option>
+                              <option value="Elevated Super Structure (8ft)">Elevated Super Structure (8ft)</option>
+                              <option value="South Facing flat Ballast Base">South Facing flat Ballast Base</option>
+                              <option value="Custom Pergola Design">Custom Pergola Design</option>
+                            </select>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-[8px] text-slate-500 uppercase font-bold">CAD Layout / Shadow Map Link</label>
+                            <input 
+                              type="text"
+                              value={surveyEdit.cad_design_url || ''}
+                              onChange={(e) => setSurveyEdit({ ...surveyEdit, cad_design_url: e.target.value })}
+                              placeholder="e.g. Google Drive layout PDF/Image link"
+                              className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-[8px] text-slate-500 uppercase font-bold">Single Line Diagram (SLD) Schematic Link</label>
+                            <input 
+                              type="text"
+                              value={surveyEdit.electrical_schematic || ''}
+                              onChange={(e) => setSurveyEdit({ ...surveyEdit, electrical_schematic: e.target.value })}
+                              placeholder="e.g. Electrical schematic diagram link"
+                              className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono"
+                            />
+                          </div>
                         </div>
                       </div>
 
