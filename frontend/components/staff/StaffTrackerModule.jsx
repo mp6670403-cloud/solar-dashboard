@@ -260,11 +260,11 @@ export default function StaffTrackerModule({ user }) {
     } catch (err) {
       console.warn('API error, loading mock data:', err.message);
       setStaff([
-        { id: 1, username: 'owner', designation: 'Owner', full_name: 'Rajesh Gupta', email: 'rajesh@heliussolar.in' },
-        { id: 2, username: 'hr_user', designation: 'HR', full_name: 'Priya Sharma', email: 'priya@heliussolar.in' },
-        { id: 3, username: 'sales_user', designation: 'Sales Head', full_name: 'Amit Verma', email: 'amit@heliussolar.in' },
-        { id: 4, username: 'ops_user', designation: 'Operations Head', full_name: 'Suresh Patel', email: 'suresh@heliussolar.in' },
-        { id: 5, username: 'b2b_sales', designation: 'B2B Sales', full_name: 'Ankit Sharma', email: 'ankit@heliussolar.in' }
+        { id: 1, username: 'owner', designation: 'Owner', full_name: 'Rajesh Gupta', email: 'rajesh@suncraftpower.in' },
+        { id: 2, username: 'hr_user', designation: 'HR', full_name: 'Priya Sharma', email: 'priya@suncraftpower.in' },
+        { id: 3, username: 'sales_user', designation: 'Sales Head', full_name: 'Amit Verma', email: 'amit@suncraftpower.in' },
+        { id: 4, username: 'ops_user', designation: 'Operations Head', full_name: 'Suresh Patel', email: 'suresh@suncraftpower.in' },
+        { id: 5, username: 'b2b_sales', designation: 'B2B Sales', full_name: 'Ankit Sharma', email: 'ankit@suncraftpower.in' }
       ]);
       setAttendance([
         { id: 1, user_id: 4, date: new Date().toISOString().split('T')[0], status: 'Present', check_in: '09:15 AM', check_out: '', current_activity: 'Field Site Survey at Bansal Residence' },
@@ -276,11 +276,11 @@ export default function StaffTrackerModule({ user }) {
         { id: 3, assigned_to: 'Suresh Patel', title: 'Approve single line diagrams', description: 'Verify electrical CAD layouts.', priority: 'Medium', status: 'Pending', due_date: '2026-06-25' }
       ]);
       setUsersList([
-        { id: 1, username: 'owner', designation: 'Owner', full_name: 'Rajesh Gupta', email: 'rajesh@heliussolar.in' },
-        { id: 2, username: 'hr_user', designation: 'HR', full_name: 'Priya Sharma', email: 'priya@heliussolar.in' },
-        { id: 3, username: 'sales_user', designation: 'Sales Head', full_name: 'Amit Verma', email: 'amit@heliussolar.in' },
-        { id: 4, username: 'ops_user', designation: 'Operations Head', full_name: 'Suresh Patel', email: 'suresh@heliussolar.in' },
-        { id: 5, username: 'b2b_sales', designation: 'B2B Sales', full_name: 'Ankit Sharma', email: 'ankit@heliussolar.in' }
+        { id: 1, username: 'owner', designation: 'Owner', full_name: 'Rajesh Gupta', email: 'rajesh@suncraftpower.in' },
+        { id: 2, username: 'hr_user', designation: 'HR', full_name: 'Priya Sharma', email: 'priya@suncraftpower.in' },
+        { id: 3, username: 'sales_user', designation: 'Sales Head', full_name: 'Amit Verma', email: 'amit@suncraftpower.in' },
+        { id: 4, username: 'ops_user', designation: 'Operations Head', full_name: 'Suresh Patel', email: 'suresh@suncraftpower.in' },
+        { id: 5, username: 'b2b_sales', designation: 'B2B Sales', full_name: 'Ankit Sharma', email: 'ankit@suncraftpower.in' }
       ]);
       setLeaveRequests(mockLeaveRequests);
       setCandidates(mockCandidates);
@@ -1694,7 +1694,7 @@ export default function StaffTrackerModule({ user }) {
       <Modal isOpen={userModalOpen} onClose={() => setUserModalOpen(false)} title={editUserMode ? "Modify Staff Access" : "Onboard New Staff Member"}>
         <form onSubmit={handleOnboardUser} className="p-6 space-y-4">
           <Input label="Full Name" id="user_fullname" placeholder="e.g. Aman Verma" value={userForm.full_name} onChange={e => setUserForm(prev => ({ ...prev, full_name: e.target.value }))} required />
-          <Input label="Email Address" id="user_email" type="email" placeholder="aman@heliussolar.in" value={userForm.email} onChange={e => setUserForm(prev => ({ ...prev, email: e.target.value }))} required />
+          <Input label="Email Address" id="user_email" type="email" placeholder="aman@suncraftpower.in" value={userForm.email} onChange={e => setUserForm(prev => ({ ...prev, email: e.target.value }))} required />
           <div className="grid grid-cols-2 gap-4">
             <Input label="Username" id="user_username" placeholder="e.g. aman_sales" value={userForm.username} onChange={e => setUserForm(prev => ({ ...prev, username: e.target.value }))} required disabled={editUserMode} />
             <Select label="Access Designation (Role)" id="user_role" value={userForm.designation} onChange={e => setUserForm(prev => ({ ...prev, designation: e.target.value }))} options={[

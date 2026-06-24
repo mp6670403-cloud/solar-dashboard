@@ -130,11 +130,11 @@ const FALLBACK_ROLE_ACTIVITIES = {
     { id: 305, type: 'info',    message: 'Candidate interview scheduled: Technical round for Telecaller position', time: '1 day ago' },
   ],
   'B2B Sales': [
-    { id: 401, type: 'success', message: 'Order #101 delivered to Helius Solar Systems — 50x Mono PERC 540W', time: '2 hours ago' },
+    { id: 401, type: 'success', message: 'Order #101 delivered to SunCraft Power Systems — 50x Mono PERC 540W', time: '2 hours ago' },
     { id: 402, type: 'info',    message: 'New order placed by Apex Green Solutions — 20x Mono PERC 540W (Pending Owner Approval)', time: '5 hours ago' },
     { id: 403, type: 'warning', message: 'Payment overdue: Aditya Power EPC — Invoice SLV-B2B-002 (₹2.65L) past due', time: '1 day ago' },
-    { id: 404, type: 'info',    message: 'WhatsApp dispatch alert sent to Helius Solar — Order #104 via Delhivery', time: '1 day ago' },
-    { id: 405, type: 'success', message: 'Invoice SLV-B2B-001 payment received from Helius Solar — ₹5.43L RTGS', time: '2 days ago' },
+    { id: 404, type: 'info',    message: 'WhatsApp dispatch alert sent to SunCraft Power — Order #104 via Delhivery', time: '1 day ago' },
+    { id: 405, type: 'success', message: 'Invoice SLV-B2B-001 payment received from SunCraft Power — ₹5.43L RTGS', time: '2 days ago' },
   ]
 };
 

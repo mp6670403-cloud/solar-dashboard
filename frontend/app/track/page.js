@@ -82,7 +82,7 @@ function TrackingContent() {
         <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center animate-bounce shadow-lg shadow-indigo-600/30">
           <Sun size={24} className="text-white animate-spin" />
         </div>
-        <p className="text-xs font-semibold tracking-wider uppercase text-indigo-400 animate-pulse">Connecting to Helius Solar Logistics...</p>
+        <p className="text-xs font-semibold tracking-wider uppercase text-indigo-400 animate-pulse">Connecting to SunCraft Power Logistics...</p>
       </div>
     );
   }
@@ -152,7 +152,7 @@ function TrackingContent() {
               <Sun size={22} className="animate-pulse" />
             </div>
             <div className="text-left">
-              <h1 className="text-base font-black tracking-tight text-white uppercase">Helius Solar</h1>
+              <h1 className="text-base font-black tracking-tight text-white uppercase">SunCraft Power</h1>
               <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Project Installation Tracking</p>
             </div>
           </div>
@@ -249,7 +249,7 @@ function TrackingContent() {
           </a>
 
           <p className="text-[9px] text-center text-slate-600 mt-8">
-            Powered by Helius Solar Logistics. Lucknow branch. &bull; gomtinagar@heliussolar.in
+            Powered by SunCraft Power Logistics. Lucknow branch. &bull; gomtinagar@suncraftpower.in
           </p>
         </div>
       </div>
@@ -296,7 +296,7 @@ function TrackingContent() {
             <Sun size={22} className="animate-pulse" />
           </div>
           <div className="text-left">
-            <h1 className="text-base font-black tracking-tight text-white uppercase">Helius Solar</h1>
+            <h1 className="text-base font-black tracking-tight text-white uppercase">SunCraft Power</h1>
             <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Operations & Logistics Hub</p>
           </div>
         </div>
@@ -445,7 +445,7 @@ function TrackingContent() {
         </div>
 
         <p className="text-[9px] text-center text-slate-600 mt-8">
-          Powered by Helius Solar Logistics. Lucknow branch. &bull; gomtinagar@heliussolar.in
+          Powered by SunCraft Power Logistics. Lucknow branch. &bull; gomtinagar@suncraftpower.in
         </p>
 
       </div>
@@ -474,7 +474,7 @@ function TrackingContent() {
               
               <div className="flex justify-between items-start border-b border-slate-200 pb-5">
                 <div>
-                  <h2 className="text-xl font-black uppercase text-indigo-700 tracking-tight">Helius Solar</h2>
+                  <h2 className="text-xl font-black uppercase text-indigo-700 tracking-tight">SunCraft Power</h2>
                   <p className="text-[10px] text-slate-500 leading-normal mt-1">
                     5/576, Sector 5 Market, Gomti Nagar,<br />
                     Lucknow, Uttar Pradesh - 226010<br />
@@ -556,7 +556,7 @@ function TrackingContent() {
 
               <div className="terms-footer border-t border-slate-200 pt-5 text-[9px] text-slate-400 text-center space-y-1">
                 <p>All values are in Indian Rupees (INR). Subject to Lucknow Jurisdiction.</p>
-                <p>Thank you for partnering with Helius Solar for clean energy transition!</p>
+                <p>Thank you for partnering with SunCraft Power for clean energy transition!</p>
               </div>
 
             </div>

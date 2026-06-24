@@ -97,7 +97,7 @@ export default function Sidebar({ activeModule, onModuleChange, user, onLogout }
             <Sun size={22} />
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-sm font-bold text-white tracking-tight truncate">Helius Solar</span>
+            <span className="text-sm font-bold text-white tracking-tight truncate">SunCraft Power</span>
             <span className="text-[10px] text-indigo-400 font-medium tracking-wider uppercase">Operations Hub</span>
           </div>
 

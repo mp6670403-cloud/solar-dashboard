@@ -185,7 +185,7 @@ router.post('/webhook/error-fallback', async (req, res) => {
   console.log(`[ALERT FALLBACK SYSTEM] ⚠️ WAHA Offline Failover Triggered!
   Event: ${event_type}
   Target Phone: ${recipient}
-  Fallback Email: ${fallback_email || 'alerts@heliussolar.in'}
+  Fallback Email: ${fallback_email || 'alerts@suncraftpower.in'}
   Message: "${message_text}"
   --------------------------------------------------
   `);

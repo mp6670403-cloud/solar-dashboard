@@ -100,7 +100,7 @@ const INITIAL_PROJECTS = [
       { id: 5, name: 'Genus Bi-Directional Net Meter', qty: 1, status: 'Needs Procurement', po: '' }
     ],
     conversation_logs: [
-      { date: '2026-06-18', type: 'Call', recording_link: 'http://rec.heliussolar.in/c-rajesh-32', summary: 'Called client to inform about structure delivery delay. GI columns are scheduled for tomorrow morning.', transcript: 'Agent: Sir structure material transport me thoda issue tha, kal subah 9 baje tak site reach ho jayega. Client: Thik hai, kal morning se hi work start karwa dena.' },
+      { date: '2026-06-18', type: 'Call', recording_link: 'http://rec.suncraftpower.in/c-rajesh-32', summary: 'Called client to inform about structure delivery delay. GI columns are scheduled for tomorrow morning.', transcript: 'Agent: Sir structure material transport me thoda issue tha, kal subah 9 baje tak site reach ho jayega. Client: Thik hai, kal morning se hi work start karwa dena.' },
       { date: '2026-06-15', type: 'Chat', recording_link: null, summary: 'Client shared electricity bill for feasibility application.', transcript: 'Client: Attached my latest electricity bill. Agent: Thank you, uploading it for PM Surya Ghar registration.' }
     ]
   },
@@ -145,7 +145,7 @@ const INITIAL_PROJECTS = [
       { id: 5, name: 'Genus Bi-Directional Net Meter', qty: 1, status: 'Needs Procurement', po: '' }
     ],
     conversation_logs: [
-      { date: '2026-06-17', type: 'Call', recording_link: 'http://rec.heliussolar.in/c-amit-14', summary: 'Called for document verify. Feasibility has been approved on state portal.', transcript: 'Agent: Hello Amit ji, feasibility approve ho gayi hai. Commissioning team kal panel mount check karegi. Client: Bahut achha, thanks for the update.' }
+      { date: '2026-06-17', type: 'Call', recording_link: 'http://rec.suncraftpower.in/c-amit-14', summary: 'Called for document verify. Feasibility has been approved on state portal.', transcript: 'Agent: Hello Amit ji, feasibility approve ho gayi hai. Commissioning team kal panel mount check karegi. Client: Bahut achha, thanks for the update.' }
     ]
   },
   {
@@ -233,7 +233,7 @@ const INITIAL_PROJECTS = [
       { id: 5, name: 'Genus Bi-Directional Net Meter', qty: 1, status: 'Needs Procurement', po: '' }
     ],
     conversation_logs: [
-      { date: '2026-06-14', type: 'Call', recording_link: 'http://rec.heliussolar.in/c-vikram-99', summary: 'Called to verify downpayment receipt status. Payment received.', transcript: 'Agent: Sir downpayment ₹1.1L check clear ho gaya hai, registration workflow lock kar diya hai. Client: Okay, file forward kar dena.' }
+      { date: '2026-06-14', type: 'Call', recording_link: 'http://rec.suncraftpower.in/c-vikram-99', summary: 'Called to verify downpayment receipt status. Payment received.', transcript: 'Agent: Sir downpayment ₹1.1L check clear ho gaya hai, registration workflow lock kar diya hai. Client: Okay, file forward kar dena.' }
     ]
   },
   {
@@ -277,7 +277,7 @@ const INITIAL_PROJECTS = [
       { id: 5, name: 'Genus Bi-Directional Net Meter', qty: 1, status: 'PO Sent', po: 'PO-METER-998' }
     ],
     conversation_logs: [
-      { date: '2026-06-16', type: 'Call', recording_link: 'http://rec.heliussolar.in/c-sunita-21', summary: 'Scheduled DISCOM physical inspection for solar system.', transcript: 'Agent: Mam, state engineering team Saturday morning inspect karne aa rahi hai. Client: I will ensure my manager is present at site. Please send safety handbook.' }
+      { date: '2026-06-16', type: 'Call', recording_link: 'http://rec.suncraftpower.in/c-sunita-21', summary: 'Scheduled DISCOM physical inspection for solar system.', transcript: 'Agent: Mam, state engineering team Saturday morning inspect karne aa rahi hai. Client: I will ensure my manager is present at site. Please send safety handbook.' }
     ]
   }
 ];
@@ -478,7 +478,7 @@ export default function B2CProjectModule({ user }) {
     const newLog = {
       date: new Date().toISOString().split('T')[0],
       type: newLogType,
-      recording_link: newLogType === 'Call' ? `http://rec.heliussolar.in/c-new-${Math.floor(100+Math.random()*900)}` : null,
+      recording_link: newLogType === 'Call' ? `http://rec.suncraftpower.in/c-new-${Math.floor(100+Math.random()*900)}` : null,
       summary: newLogSummary,
       transcript: newLogTranscript || 'Conversation logged manually by operator.'
     };

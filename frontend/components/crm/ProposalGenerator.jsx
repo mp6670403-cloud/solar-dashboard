@@ -212,8 +212,8 @@ export default function ProposalGenerator({ lead }) {
 
         {/* Footer */}
         <div className="text-center pt-6 border-t border-slate-200 mt-8">
-          <p className="text-[10px] text-slate-400 font-medium">Thank you for choosing Helius Solar to transition to clean energy.</p>
-          <p className="text-[10px] text-slate-400 mt-1">Email: contact@heliussolar.in | Phone: +91 70520 51010</p>
+          <p className="text-[10px] text-slate-400 font-medium">Thank you for choosing SunCraft Power to transition to clean energy.</p>
+          <p className="text-[10px] text-slate-400 mt-1">Email: contact@suncraftpower.in | Phone: +91 70520 51010</p>
         </div>
 
       </div>

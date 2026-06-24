@@ -389,7 +389,7 @@ export default function Home() {
                             rows={3}
                             value={aiSettings.surya_strategy_override}
                             onChange={(e) => setAiSettings({ ...aiSettings, surya_strategy_override: e.target.value })}
-                            placeholder="e.g. Pitch standard Helius Solar rates at ₹60,000 per kW. Highlight Lucknow location."
+                            placeholder="e.g. Pitch standard SunCraft Power rates at ₹60,000 per kW. Highlight Lucknow location."
                             className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-200 focus:outline-none focus:border-indigo-500 font-mono text-[11px] leading-relaxed"
                           />
                           <span className="text-[10px] text-slate-500 block">

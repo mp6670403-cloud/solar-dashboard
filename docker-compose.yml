@@ -1,0 +1,32 @@
+version: '3.7'
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n-container
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=52.63.104.242.sslip.io
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://52.63.104.242.sslip.io/n8n/
+      - N8N_SECURE_COOKIE=false
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+  waha:
+    image: devlikeapro/waha
+    container_name: waha-container
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - WAHA_WHATSAPP_DEFAULT_SESSION=default
+    volumes:
+      - waha_data:/app/.waha
+
+volumes:
+  n8n_data:
+  waha_data:

@@ -67,11 +67,11 @@ const seedMockDb = async () => {
 
   // --- USERS (5 default users as specified) ---
   mockDb.users = [
-    { id: 1, username: 'owner', password_hash: hash, designation: 'Owner', full_name: 'Rajesh Gupta', email: 'rajesh@heliussolar.in' },
-    { id: 2, username: 'hr_user', password_hash: hash, designation: 'HR', full_name: 'Priya Sharma', email: 'priya@heliussolar.in' },
-    { id: 3, username: 'sales_user', password_hash: hash, designation: 'Sales Head', full_name: 'Amit Verma', email: 'amit@heliussolar.in' },
-    { id: 4, username: 'ops_user', password_hash: hash, designation: 'Operations Head', full_name: 'Suresh Patel', email: 'suresh@heliussolar.in' },
-    { id: 5, username: 'b2b_sales', password_hash: hash, designation: 'B2B Sales', full_name: 'Ankit Sharma', email: 'ankit@heliussolar.in' }
+    { id: 1, username: 'owner', password_hash: hash, designation: 'Owner', full_name: 'Rajesh Gupta', email: 'rajesh@suncraftpower.in' },
+    { id: 2, username: 'hr_user', password_hash: hash, designation: 'HR', full_name: 'Priya Sharma', email: 'priya@suncraftpower.in' },
+    { id: 3, username: 'sales_user', password_hash: hash, designation: 'Sales Head', full_name: 'Amit Verma', email: 'amit@suncraftpower.in' },
+    { id: 4, username: 'ops_user', password_hash: hash, designation: 'Operations Head', full_name: 'Suresh Patel', email: 'suresh@suncraftpower.in' },
+    { id: 5, username: 'b2b_sales', password_hash: hash, designation: 'B2B Sales', full_name: 'Ankit Sharma', email: 'ankit@suncraftpower.in' }
   ];
 
   // --- LEADS (Solar EPC leads from various sources) ---
@@ -273,7 +273,7 @@ const seedMockDb = async () => {
   ];
 
   mockDb.system_settings = [
-    { setting_key: 'surya_strategy_override', setting_value: 'Pitch standard Helius Solar rates at ₹60,000 per kW. Highlight Lucknow location.' },
+    { setting_key: 'surya_strategy_override', setting_value: 'Pitch standard SunCraft Power rates at ₹60,000 per kW. Highlight Lucknow location.' },
     { setting_key: 'active_offers', setting_value: 'Monsoon Offer: ₹5,000 cash discount on systems 5kW and above.' },
     { setting_key: 'sales_strategy', setting_value: 'Focus on central subsidy of ₹78,000.' },
     { setting_key: 'bot_whatsapp_number', setting_value: '6386434561' },
@@ -282,7 +282,7 @@ const seedMockDb = async () => {
     { setting_key: 'waha_api_key', setting_value: '' },
     { setting_key: 'openai_api_key', setting_value: '' },
     { setting_key: 'strategy_override_prompt', setting_value: '' },
-    { setting_key: 'fallback_email_recipient', setting_value: 'alerts@heliussolar.in' },
+    { setting_key: 'fallback_email_recipient', setting_value: 'alerts@suncraftpower.in' },
     { setting_key: 'controller_access_password', setting_value: 'admin123' }
   ];
 
@@ -1062,7 +1062,7 @@ const initializeDatabase = async () => {
         console.log('Seeding system settings...');
         await client.query(`
           INSERT INTO system_settings (setting_key, setting_value) VALUES
-          ('surya_strategy_override', 'Pitch standard Helius Solar rates at ₹60,000 per kW. Highlight Lucknow location.'),
+          ('surya_strategy_override', 'Pitch standard SunCraft Power rates at ₹60,000 per kW. Highlight Lucknow location.'),
           ('active_offers', 'Monsoon Offer: ₹5,000 cash discount on systems 5kW and above.'),
           ('sales_strategy', 'Focus on central subsidy of ₹78,000.'),
           ('bot_whatsapp_number', '6386434561'),
@@ -1071,7 +1071,7 @@ const initializeDatabase = async () => {
           ('waha_api_key', ''),
           ('openai_api_key', ''),
           ('strategy_override_prompt', ''),
-          ('fallback_email_recipient', 'alerts@heliussolar.in'),
+          ('fallback_email_recipient', 'alerts@suncraftpower.in'),
           ('controller_access_password', 'admin123');
         `);
       }
@@ -1084,10 +1084,10 @@ const initializeDatabase = async () => {
         const hash = await bcrypt.hash('password123', salt);
         await client.query(`
           INSERT INTO users (username, password_hash, designation, full_name, email) VALUES
-          ('owner', $1, 'Owner', 'Rajesh Gupta', 'rajesh@heliussolar.in'),
-          ('hr_user', $1, 'HR', 'Priya Sharma', 'priya@heliussolar.in'),
-          ('sales_user', $1, 'Sales Head', 'Amit Verma', 'amit@heliussolar.in'),
-          ('ops_user', $1, 'Operations Head', 'Suresh Patel', 'suresh@heliussolar.in');
+          ('owner', $1, 'Owner', 'Rajesh Gupta', 'rajesh@suncraftpower.in'),
+          ('hr_user', $1, 'HR', 'Priya Sharma', 'priya@suncraftpower.in'),
+          ('sales_user', $1, 'Sales Head', 'Amit Verma', 'amit@suncraftpower.in'),
+          ('ops_user', $1, 'Operations Head', 'Suresh Patel', 'suresh@suncraftpower.in');
         `, [hash]);
       }
 
