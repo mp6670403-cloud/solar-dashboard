@@ -17,6 +17,8 @@ const b2bRoutes = require('./routes/b2b');
 const b2cRoutes = require('./routes/b2c');
 const auditRoutes = require('./routes/audit');
 const surveyRoutes = require('./routes/survey');
+const fieldRoutes = require('./routes/field');
+const customerRoutes = require('./routes/customer');
 
 // Legacy router (for backward compatibility)
 const legacyRoutes = require('./routes');
@@ -49,6 +51,8 @@ app.use('/api/b2b', b2bRoutes);
 app.use('/api/b2c', b2cRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/survey', surveyRoutes);
+app.use('/api/field', fieldRoutes);
+app.use('/api/customer', customerRoutes);
 
 // Mount Legacy Routes directly under /api for older clients
 app.use('/api', legacyRoutes);

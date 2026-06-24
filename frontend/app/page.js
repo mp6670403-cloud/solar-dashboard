@@ -14,6 +14,7 @@ import StaffTrackerModule from '../components/staff/StaffTrackerModule';
 import B2BDealerModule from '../components/b2b/B2BDealerModule';
 import B2CProjectModule from '../components/projects/B2CProjectModule';
 import EmployeePortalModule from '../components/staff/EmployeePortalModule';
+import MobileAppPortal from '../components/staff/MobileAppPortal';
 import { apiCall } from '../lib/api';
 
 export default function Home() {
@@ -192,11 +193,11 @@ export default function Home() {
   }
 
   const ROLE_MODULE_ACCESS = {
-    'Owner':      ['dashboard','crm','b2c_projects','projects','b2b','inventory','staff','employee_portal','payments','settings','controller'],
-    'HR':         ['dashboard','staff','employee_portal','settings'],
-    'Sales Head':      ['dashboard','crm','b2c_projects','employee_portal','settings'],
-    'B2B Sales':       ['dashboard','b2b','inventory','settings'],
-    'Operations Head': ['dashboard','projects','b2c_projects','b2b','inventory','settings'],
+    'Owner':      ['dashboard','crm','b2c_projects','projects','b2b','inventory','staff','employee_portal','payments','settings','controller','mobile_app'],
+    'HR':         ['dashboard','staff','employee_portal','settings','mobile_app'],
+    'Sales Head':      ['dashboard','crm','b2c_projects','employee_portal','settings','mobile_app'],
+    'B2B Sales':       ['dashboard','b2b','inventory','settings','mobile_app'],
+    'Operations Head': ['dashboard','projects','b2c_projects','b2b','inventory','settings','mobile_app'],
   };
 
   const renderModule = () => {
@@ -205,6 +206,8 @@ export default function Home() {
     const moduleToRender = allowed.includes(activeModule) ? activeModule : 'dashboard';
 
     switch (moduleToRender) {
+      case 'mobile_app':
+        return <MobileAppPortal user={currentUser} />;
       case 'dashboard':
         return <OwnerDashboard user={currentUser} />;
       case 'crm':

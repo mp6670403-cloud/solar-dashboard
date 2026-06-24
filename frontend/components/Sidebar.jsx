@@ -43,6 +43,7 @@ const NAV_ITEMS = [
   { id: 'payments',        label: 'Payments',           icon: CreditCard,      roles: ['Owner'] },
   { id: 'settings',        label: 'Settings',           icon: Settings,        roles: ['Owner', 'HR', 'Sales Head', 'Operations Head', 'B2B Sales'] },
   { id: 'controller',      label: '⚙️ API Controller',   icon: Settings,        roles: ['Owner'] },
+  { id: 'mobile_app',      label: '📱 Mobile Field App',icon: ClipboardList,   roles: ['Owner', 'HR', 'Sales Head', 'Operations Head', 'B2B Sales'] },
 ];
 
 export default function Sidebar({ activeModule, onModuleChange, user, onLogout }) {
